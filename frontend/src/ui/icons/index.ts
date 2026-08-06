@@ -1,0 +1,6 @@
+export * from './IoIosIcons'
+export * from './riIcons'
+export * from './tiIcons'
+export * from './fa6Icons'
+export * from './faIcons'
+export * from './goIcons'

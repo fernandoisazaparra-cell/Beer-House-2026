@@ -1,0 +1,110 @@
+.header {
+    display: flex;
+    position: relative;
+    position: fixed;
+    right: 0;
+    width: calc(100% - var(--sidebar-width));
+    height: var(--header-height);
+    background-color: var(--color-bg-elevated);
+    border-bottom: 0.1rem solid var(--color-border-secondary);
+    transition: var(--transition-normal);
+    z-index: var(--z-fixed);
+}
+
+.responsive {
+    width: 100%;
+}
+
+/* Header */
+.nav{
+    display: flex;
+    height: auto;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    background-color: var(--color-bg-elevated);
+}
+
+/* Contenedor de los Iconos */
+.ContentOptions{
+    display: flex;
+    align-items: center;
+    height: auto;
+    width: auto;
+    padding: var(--space-1);
+}
+
+.icon{
+    height: auto;
+    cursor: pointer;
+    width: 2rem;
+    padding: var(--space-1);
+    transition: var(--transition-normal);
+    color: var(--color-text-secondary);
+}
+
+.icon:hover{
+    color: aliceblue;
+}
+
+.icon.open{
+    transform: rotate(180deg);
+}
+
+/* Direccinoies */
+.contentLeft {
+    display: flex;
+    align-items: center;
+}
+
+.contentRigth {
+    display: flex;
+    height: auto;
+    justify-content: flex-end;
+    width: 100%;
+    background-color: var(--color-bg-elevated);
+    padding: var(--space-1);   
+}
+
+/* Icono */
+.openContainer {
+    display: flex;
+    align-items: center;
+}
+
+.iconOpen {
+    transform: rotate(90deg);
+}
+
+.iconOpen.close {
+    transform: rotate(-90deg);
+}
+
+/* login */
+.contentLogin {
+    display: flex;
+    align-items: center;
+}
+
+.login {
+    all: unset;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-text-muted);
+    transition: var(--transition-normal);
+}
+
+.login:hover, 
+.login:hover h2{
+    border-color: var(--color-text-tertiary);
+    color: var(--color-text-tertiary);
+}
+
+.login h2 {
+    transition: var(--transition-normal);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: var(--font-normal);
+}

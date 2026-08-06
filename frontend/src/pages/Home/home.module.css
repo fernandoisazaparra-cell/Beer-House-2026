@@ -1,0 +1,223 @@
+.contentHome {
+    width: 100%;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    position: relative;
+    height: auto;
+    overflow: hidden;
+}
+
+.background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right;
+}
+
+.hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.background {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+
+.contentText {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 100;
+    width: 60%;
+    height: 100%;
+    gap: var(--space-4);
+    padding: var(--space-10);
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    font-Size: var(--font-size-4xl);
+    font-Family: var(--font-family-body);
+    font-Weight: var(--font-bold);
+    line-Height: var(--line-height-md);
+    letter-Spacing: var(--letter-spacing-normal-wide);
+}
+
+.text span:nth-child(1) {
+    color: var(--color-text-primary);
+}
+
+.text span:nth-child(2) {
+    background: var(--color-text-gradiant-1);
+    -webkit-background-clip: text;
+    background-Clip: text;
+    color: transparent;
+}
+
+.parrafo {
+    display: flex;
+    justify-content: center;
+}
+
+.parrafo p {
+    max-Width: 30rem;
+    text-align: center;
+    font-Family: var(--font-family-body);
+    font-Size: var(--font-size-md);
+    line-Height: var(--line-height-md);
+    color: var(--color-text-primary);
+}
+
+/* productos */
+.value {
+    display: flex;
+    height: auto;
+    justify-content: center;
+    width: 100%;
+    gap: var(--space-4);
+    padding: var(--space-8) 0;
+}
+
+.line {
+    height: 100%;
+    width: 0.1rem;
+    background-color: var(--color-text-muted);
+}
+
+.icon {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-2xl);
+}
+
+.valueProm {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.textProm h2 {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+}
+
+.textProm span {
+    font-size: var(--font-size-lg);
+    font-family: var(--font-family-numeric);
+}
+
+/* Botones */
+.Buttons {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+}
+
+.primaryCta,
+.secondaryCta {
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-slow);
+}
+
+.primaryCta span,
+.secondaryCta span {
+    font-family: var(--font-family-body);
+    font-weight: var(--font-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    transition: var(--transition-slow);
+}
+
+.primaryCta {
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background:
+        var(--color-text-gradiant-1) padding-box,
+        var(--color-text-gradiant-1) border-box;
+}
+
+.primaryCta span{
+  color: #241a0c; 
+}
+
+.primaryCta:hover {
+    background: transparent;
+    border: 1px solid var(--color-text-primary);
+}
+
+.primaryCta:hover span {
+    color: var(--color-text-primary);
+}
+
+.secondaryCta {
+    border: 1px solid var(--color-text-primary);  
+}
+
+.secondaryCta span{
+    color: var(--color-text-primary);
+}
+
+.secondaryCta:hover {
+    border-color: var(--color-text-tertiary);
+}
+
+.secondaryCta:hover span {
+    color: var(--color-text-tertiary);
+}
+
+
+@media (min-width: 2000px) {
+    .background {
+        width: 200%;
+        height: 200%;
+    }
+}
+
+@media (max-width: 1400px) {
+    .contentText {
+        width: 100%;
+    }
+}
+
+@media (max-width: 800px) {
+    .value {
+        flex-direction: column;
+    }
+
+    .valueProm {
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        max-width: 16rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 500px) {
+    .Buttons {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,19 @@
+.os-theme-custom {
+    --os-size: 10px;
+    --os-padding-perpendicular: 4px;
+    --os-padding-axis: 4px;
+    --os-track-border-radius: var(--radius-full, 999px);
+    --os-track-bg: var(--color-bg-elevated);
+    --os-track-bg-hover: var(--color-bg-elevated);
+    --os-track-bg-active: var(--color-bg-elevated);
+    --os-handle-border-radius: var(--radius-full, 999px);
+    --os-handle-bg: var(--color-text-secondary);
+    --os-handle-bg-hover: var(--color-text-primary);
+    --os-handle-bg-active: var(--color-text-primary);
+    --os-handle-min-size: 32px;
+}
+
+.os-theme-custom.os-scrollbar-vertical {
+    right: auto;
+    left: 0;
+}

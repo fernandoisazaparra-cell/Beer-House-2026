@@ -1,0 +1,17 @@
+.aside{
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    overflow: hidden;
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-lg) var(--color-overlay);
+    background-color: var(--color-bg-elevated);
+    transition: var(--transition-normal);
+    z-index: var(--z-sticky);
+}
+
+.responsive {
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+}

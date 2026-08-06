@@ -1,0 +1,31 @@
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    width: 100%;
+    margin-top: auto;
+    padding: var(--space-6) var(--space-10);
+    border-top: 1px solid var(--color-border-secondary);
+    background-color: var(--color-bg-elevated);
+}
+
+.brand {
+    display: flex;
+    gap: var(--space-3);
+    letter-spacing: var(--letter-spacing-wide);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+}
+
+.brand span:nth-child(2) {
+    color: var(--color-text-tertiary);
+}
+
+.footer p {
+    margin: 0;
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}

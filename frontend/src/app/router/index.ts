@@ -1,0 +1,3 @@
+export {
+    AppRoutes
+} from './Router'

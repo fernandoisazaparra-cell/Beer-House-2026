@@ -1,0 +1,39 @@
+.Logo {
+    position: relative;
+    display: flex;
+    width: auto;
+    gap: var(--space-1);
+    height: var(--header-height);
+    border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.contentImg {
+    display: flex;
+    flex-shrink: 0;
+    width: auto;
+    height: 100%;
+}
+
+.contentImg img {
+    height: auto;
+    width: var(--header-height);
+    padding: var(--space-2);
+}
+
+.contentText {
+    display: flex;
+    height: auto;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+}
+
+.contentText span {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-normal);
+    letter-spacing: var(--space-1);
+}
+
+.contentText span:nth-child(2) {
+    color: var(--color-text-tertiary);
+}
