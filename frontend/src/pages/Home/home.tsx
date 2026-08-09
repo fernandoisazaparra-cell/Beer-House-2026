@@ -14,6 +14,7 @@ import styles from './home.module.css'
 
 export const Home = () => {
   return (
+    <>
     <section className={styles.contentHome}>
       <img
         src={background}
@@ -82,5 +83,6 @@ export const Home = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };

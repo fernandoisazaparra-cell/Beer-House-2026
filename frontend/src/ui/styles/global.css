@@ -17,3 +17,22 @@
     right: auto;
     left: 0;
 }
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-elevated);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-text-secondary);
+    border-radius: 999px;
+    min-height: 12px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-primary);
+}

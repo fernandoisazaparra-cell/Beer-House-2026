@@ -1,11 +1,11 @@
-import { 
-    Outlet 
+import {
+    Outlet
 } from "react-router-dom"
 
 import {
-   Aside,
-   Header,
-   Footer
+    Aside,
+    Header,
+    Footer
 } from '@/features'
 
 

@@ -1,11 +1,10 @@
 .contentHome {
     width: 100%;
+    min-height: 100%;
+    flex: 1 0 auto;
     display: flex;
-    flex: 1;
     align-items: center;
     position: relative;
-    height: auto;
-    overflow: hidden;
 }
 
 .background {
@@ -41,13 +40,12 @@
 }
 
 .contentText {
-    position: absolute;
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     z-index: 100;
     width: 60%;
-    height: 100%;
     gap: var(--space-4);
     padding: var(--space-10);
 }

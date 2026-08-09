@@ -1,7 +1,3 @@
-export { 
-    MainLayout 
-} from './layouts/MainLayout'
-
 export {
     Floating,
     

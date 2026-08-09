@@ -10,7 +10,7 @@ import {
 
 import {
     MainLayout
-} from '@/shared'
+} from '@/pages'
 
 export const AppRoutes = () => {
     return (

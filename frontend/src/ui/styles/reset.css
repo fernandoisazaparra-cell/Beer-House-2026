@@ -13,7 +13,10 @@ body {
     font-size: var(--font-size-md);
     line-height: var(--line-height-md);
     -webkit-font-smoothing: antialiased;
-    overflow: hidden;
+}
+
+section {
+  flex: 1 0 auto;
 }
 
 button, 
