@@ -1,0 +1,20 @@
+{
+  "name": "beer-house-2026",
+  "version": "1.0.0",
+  "description": "\"Beer House es un aplicativo web para una licorera de Medellín que hoy gestiona ventas, inventario y pedidos de forma manual, generando pérdida de información y reprocesos. El proyecto la digitaliza con ventas online, pagos seguros, catálogo e inventario en tiempo real, roles de usuario, historial de compras y reportes para la toma de decisiones.\"",
+  "scripts": {
+    "frontend:install": "node scripts/frontend/install.js",
+    "test": "node scripts/checkTest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fernandoisazaparra-cell/Beer-House-2026.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fernandoisazaparra-cell/Beer-House-2026/issues"
+  },
+  "homepage": "https://github.com/fernandoisazaparra-cell/Beer-House-2026#readme"
+}
