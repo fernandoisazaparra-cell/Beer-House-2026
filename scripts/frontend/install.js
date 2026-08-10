@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import {
@@ -6,11 +6,12 @@ import {
     showHeader,
     runSteps,
     runCommand,
+    runCommandCapture,
     fail,
     success,
-    formatDuration
+    formatDuration,
+    satisfiesRange
 } from '../shared/index.js'
-import { start } from 'node:repl'
 
 // ============================================================
 // CONFIGURACIÓN
@@ -34,26 +35,70 @@ const main = async () => {
     const steps = [
         { status: 'pending', label: 'Verificando estructura del proyecto' },
         { status: 'pending', label: 'Verificando package.json' },
+        { status: 'pending', label: 'Verificando versión de Node.js' },
+        { status: 'pending', label: 'Verificando npm' },
         { status: 'pending', label: 'Instalando dependencias' }
     ]
 
+    // Se llena en el paso 2 y lo reutilizan los pasos 3 y 5
+    // (evita leer/parsear el package.json más de una vez)
+    let pkg = null
+    let npmVersion = null
     let alreadyInstalled = false
 
     await runSteps(steps, [
         {
-            percentage: { start: 0, end: 30 },
+            percentage: 15,
             task: async () => {
                 if (!existsSync(frontendDir)) fail('No se encontró la carpeta frontend/')
             }
         },
         {
-            percentage: { start: 30, end: 55 },
+            percentage: 30,
             task: async () => {
                 if (!existsSync(packageJson)) fail('No se encontró frontend/package.json')
+
+                try {
+                    pkg = JSON.parse(readFileSync(packageJson, 'utf8'))
+                } catch {
+                    fail('frontend/package.json no es un JSON válido')
+                }
             }
         },
         {
-            percentage: { start: 55, end: 100 },
+            percentage: 50,
+            task: async () => {
+                const required = pkg.engines?.node
+
+                // Si el proyecto no especifica engines.node, no bloquea.
+                if (!required) return
+
+                const currentVersion = process.version
+
+                if (!satisfiesRange(currentVersion, required)) {
+                    fail(
+                        'Versión de Node.js incompatible con el proyecto.',
+                        `Requerida: ${required}\nInstalada: ${currentVersion}`
+                    )
+                }
+            }
+        },
+        {
+            percentage: 65,
+            task: async () => {
+                try {
+                    npmVersion = await runCommandCapture({ command: 'npm', args: ['--version'] })
+                } catch {
+                    fail(
+                        'No se encontró npm.',
+                        'npm viene incluido con Node.js — reinstala Node.js desde nodejs.org'
+                    )
+                }
+            }
+        },
+        {
+            // Mientras "npm i" corre se ve 80% (no 100%, sigue instalando)
+            percentage: { start: 80, end: 100 },
             task: async () => {
                 alreadyInstalled = existsSync(nodeModules)
                 if (!alreadyInstalled) {
@@ -71,6 +116,7 @@ const main = async () => {
     success([
         c.bold(c.green('¡Frontend listo!')),
         '',
+        c.gray(`Node.js: ${process.version}   npm: ${npmVersion}`),
         depsLine,
         c.gray(`Tiempo total: ${elapsed}`),
         '',
@@ -78,4 +124,4 @@ const main = async () => {
     ])
 }
 
-main().catch((err) => fail(err.message))
+main().catch((err) => fail(err.message, err.details))

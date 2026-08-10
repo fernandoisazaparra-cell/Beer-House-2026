@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
     "overlayscrollbars": "^2.16.0",

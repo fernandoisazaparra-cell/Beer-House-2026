@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "\"Beer House es un aplicativo web para una licorera de Medellín que hoy gestiona ventas, inventario y pedidos de forma manual, generando pérdida de información y reprocesos. El proyecto la digitaliza con ventas online, pagos seguros, catálogo e inventario en tiempo real, roles de usuario, historial de compras y reportes para la toma de decisiones.\"",
   "scripts": {
+    "all:install": "node scripts/all/install.js",
+    "db:install": "node scripts/database/install.js",
+    "backend:install": "node scripts/backend/install.js",
     "frontend:install": "node scripts/frontend/install.js",
     "test": "node scripts/checkTest.js"
   },
