@@ -11,7 +11,7 @@ const base = {
   strokeLinejoin: "round" as const,
 };
 
-export const WhiskyIcon: React.FC<IconProps> = ({ size = 40 }) => (
+export const : React.FC<IconProps> = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" {...base}>
     <path d="M12 14h16l-2 18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2z" />
     <circle cx="18" cy="24" r="2" />
