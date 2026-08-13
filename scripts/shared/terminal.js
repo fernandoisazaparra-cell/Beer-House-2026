@@ -24,16 +24,18 @@ const ensureCursorRestore = () => {
 const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, '')
 
 const box = (lines, { color = c.amber, minWidth = 46 } = {}) => {
-    const width = Math.max(minWidth, ...lines.map((l) => stripAnsi(l).length)) + 4
+    // Dividimos cualquier línea con saltos para que la caja nunca se rompa
+    const rows = lines.flatMap((line) => line.split('\n'))
+    const width = Math.max(minWidth, ...rows.map((row) => stripAnsi(row).length)) + 4
 
     const top = color(`╭${'─'.repeat(width)}╮`)
     const bottom = color(`╰${'─'.repeat(width)}╯`)
     const empty = color('│') + ' '.repeat(width) + color('│')
 
-    const body = lines.map((line) => {
-        const visibleLen = stripAnsi(line).length
+    const body = rows.map((row) => {
+        const visibleLen = stripAnsi(row).length
         const padding = width - 2 - visibleLen
-        return `${color('│')}  ${line}${' '.repeat(Math.max(padding, 0))}${color('│')}`
+        return `${color('│')}  ${row}${' '.repeat(Math.max(padding, 0))}${color('│')}`
     })
 
     return [top, empty, ...body, empty, bottom].join('\n')
@@ -46,7 +48,7 @@ const showHeader = ({ title = 'BEER HOUSE 2026', description = '' } = {}) => {
     console.clear()
     ensureCursorRestore()
 
-    const lines = [c.bold(gradientText(`🍺  ${title}`))]
+    const lines = [c.bold(gradientText(`${title}`))]
     if (description) lines.push(c.gray(description))
 
     console.log('\n' + box(lines) + '\n')

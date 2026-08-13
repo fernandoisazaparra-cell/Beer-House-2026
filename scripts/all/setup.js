@@ -47,12 +47,12 @@ const main = async () => {
         c.bold(c.green('¡Instalación completada con éxito!')),
         c.gray(`Tiempo de configuración: ${elapsed}`),
         '',
-        c.cyan('Iniciando servidores de desarrollo (Frontend y Backend)...\n'),
-        c.gray('Nota: Los logs de Flask y Vite aparecerán a continuación. Presiona Ctrl + C para salir.\n')
+        c.cyan('Iniciando servidores de desarrollo (Frontend y Backend)...'),
+        c.gray('Nota: Los logs de Flask y Vite aparecerán a continuación. Presiona Ctrl + C para salir.')
     ])
 
     // Paso 2: Lanzamos los servidores en paralelo de forma totalmente limpia (sin barra de carga estorbando)
-    const devProcess = spawn('npm', ['run', 'all:dev'], {
+    const devProcess = spawn('npm run all:dev', {
         cwd: rootDir,
         stdio: 'inherit',
         shell: true

@@ -17,11 +17,6 @@ const envFile = path.join(backendDir, '.env')
 // Proceso de larga duración, sin barra de progreso (igual que
 // frontend:dev): el servidor corre hasta que lo cortás con Ctrl+C.
 const main = async () => {
-    showHeader({
-        title: 'BEER HOUSE 2026',
-        description: 'Iniciando servidor de desarrollo (Flask)'
-    })
-
     if (!existsSync(backendDir)) fail('No se encontró la carpeta backend/.')
 
     const python = getVenvPython(backendDir)
@@ -34,8 +29,6 @@ const main = async () => {
     }
 
     const env = existsSync(envFile) ? parseEnvFile(envFile) : {}
-
-    console.log(c.gray('Presiona Ctrl+C para detener el servidor.\n'))
 
     // Se ejecuta run.py directamente, que ya tiene debug=True.
     // Esto SOLO debe usarse en desarrollo — ver backend:start

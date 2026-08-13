@@ -3,7 +3,6 @@ import path from 'node:path'
 
 import {
     c,
-    showHeader,
     runCommand,
     fail
 } from '../shared/index.js'
@@ -16,11 +15,6 @@ const nodeModulesDir = path.join(frontendDir, 'node_modules')
 // de desarrollo de CRA (webpack-dev-server) corre indefinidamente
 // hasta que lo cortás con Ctrl+C, no tiene un "final" que animar.
 const main = async () => {
-    showHeader({
-        title: 'BEER HOUSE 2026',
-        description: 'Iniciando servidor de desarrollo'
-    })
-
     if (!existsSync(frontendDir)) fail('No se encontró la carpeta frontend/.')
 
     if (!existsSync(nodeModulesDir)) {
@@ -29,8 +23,6 @@ const main = async () => {
             'Ejecuta primero: npm run frontend:install'
         )
     }
-
-    console.log(c.gray('Presiona Ctrl+C para detener el servidor.\n'))
 
     // silent: false -> se muestra en vivo el output de CRA
     // (URL local, warnings de compilación, hot reload, etc)

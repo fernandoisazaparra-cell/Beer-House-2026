@@ -8,7 +8,7 @@
 | [`frontend:clean`](#-frontendclean)       | Mantenimiento | Borra `node_modules` y `build`                |
 |-------------------------------------------|---------------|-----------------------------------------------|
 | **Database**                              | Categoría     | Descripción rápida                            |
-|-------------------------------------------|---------------|-----------------------------------------------|
+|-------------------------------------------|---------------|---------------------------------------        |
 | [`db:install`](#-dbinstall)               | Setup         | Instalación inicial completa                  |
 | [`db:migrate`](#-dbmigrate)               | Desarrollo    | Genera y aplica una migración nueva           |
 | [`db:upgrade`](#-dbupgrade)               | Deploy        | Aplica migraciones ya existentes              |
