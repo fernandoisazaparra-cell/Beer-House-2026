@@ -1,9 +1,8 @@
 from flask import Flask
 
-from config.settings import Config
 from app.extensions import db, migrate
-
 from app.routes import main_bp
+from config.settings import Config
 
 def create_app():
     app = Flask(__name__)

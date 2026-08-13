@@ -1,0 +1,30 @@
+# Configuración de Ruff (lint + formato) para el backend.
+# Coloca este archivo en backend/ruff.toml
+
+line-length = 100
+target-version = "py311"
+
+exclude = [
+    "venv",
+    "migrations",
+    "__pycache__"
+]
+
+[lint]
+select = [
+    "E",   # pycodestyle (errores)
+    "W",   # pycodestyle (warnings)
+    "F",   # pyflakes (imports sin usar, variables sin usar, etc)
+    "I",   # isort (orden de imports)
+    "UP",  # pyupgrade (sintaxis moderna de Python)
+    "B",   # flake8-bugbear (errores comunes/peligrosos)
+    "SIM", # flake8-simplify (código innecesariamente complejo)
+]
+
+ignore = [
+    "E501" # líneas largas: ya las controla "line-length" arriba
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

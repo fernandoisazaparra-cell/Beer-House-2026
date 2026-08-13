@@ -1,0 +1,49 @@
+{
+  "name": "beer-house-2026",
+  "version": "1.0.0",
+  "description": "\"Beer House es un aplicativo web para una licorera de Medellín que hoy gestiona ventas, inventario y pedidos de forma manual, generando pérdida de información y reprocesos. El proyecto la digitaliza con ventas online, pagos seguros, catálogo e inventario en tiempo real, roles de usuario, historial de compras y reportes para la toma de decisiones.\"",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/all/setup.js",
+
+    "all:install": "node scripts/all/install.js",
+    "all:clean": "node scripts/all/clean.js",
+    "all:dev": "node scripts/all/dev.js",
+
+    "backend:install": "node scripts/backend/install.js",
+    "backend:dev": "node scripts/backend/dev.js",
+    "backend:start": "node scripts/backend/start.js",
+    "backend:test": "node scripts/backend/test.js",
+    "backend:clean": "node scripts/backend/clean.js",
+    "backend:lint": "node scripts/backend/lint.js",
+
+    "frontend:install": "node scripts/frontend/install.js",
+    "frontend:dev": "node scripts/frontend/dev.js",
+    "frontend:build": "node scripts/frontend/build.js",
+    "frontend:lint": "node scripts/frontend/lint.js",
+    "frontend:clean": "node scripts/frontend/clean.js",
+
+    "db:install": "node scripts/database/install.js",
+    "db:migrate": "node scripts/database/migrate.js",
+    "db:upgrade": "node scripts/database/upgrade.js",
+    "db:status": "node scripts/database/status.js",
+    "db:history": "node scripts/database/history.js",
+    "db:downgrade": "node scripts/database/downgrade.js",
+    "db:backup": "node scripts/database/backup.js",
+    "db:restore": "node scripts/database/restore.js",
+    "db:seed": "node scripts/database/seed.js",
+    "db:reset": "node scripts/database/reset.js",
+    "db:check": "node scripts/database/check.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fernandoisazaparra-cell/Beer-House-2026.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fernandoisazaparra-cell/Beer-House-2026/issues"
+  },
+  "homepage": "https://github.com/fernandoisazaparra-cell/Beer-House-2026#readme"
+}

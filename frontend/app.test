@@ -1,0 +1,15 @@
+import { render } from '@testing-library/react'
+
+import { App } from './App'
+
+// Smoke test: verifica que App (y por lo tanto AppRoutes, el router
+// completo) renderiza sin lanzar ningún error. Es un test simple a
+// propósito porque App.js es solo un wrapper del router — el detalle
+// de cada ruta/página se testea en sus propios archivos.
+describe('App', () => {
+    it('renderiza sin errores', () => {
+        const { container } = render(<App />)
+
+        expect(container).toBeTruthy()
+    })
+})
