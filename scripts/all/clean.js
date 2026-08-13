@@ -23,13 +23,13 @@ const main = async () => {
 
     showHeader({
         title: 'BEER HOUSE 2026',
-        description: 'Instalando frontend, backend y database'
+        description: 'limpiando frontend, backend y database'
     })
 
     const steps = [
-        { status: 'pending', label: 'Instalando frontend' },
-        { status: 'pending', label: 'Instalando backend' },
-        { status: 'pending', label: 'Instalando database' }
+        { status: 'pending', label: 'limpiando database' },
+        { status: 'pending', label: 'limpiando frontend' },
+        { status: 'pending', label: 'limpiando backend' }
     ]
 
     await runSteps(steps, [
@@ -38,7 +38,7 @@ const main = async () => {
             task: async () => {
                 await runCommand({
                     command: 'npm',
-                    args: ['run', 'frontend:install'],
+                    args: ['run', 'db:reset'],
                     cwd: rootDir,
                     silent: true
                 })
@@ -49,7 +49,7 @@ const main = async () => {
             task: async () => {
                 await runCommand({
                     command: 'npm',
-                    args: ['run', 'backend:install'],
+                    args: ['run', 'frontend:clean'],
                     cwd: rootDir,
                     silent: true
                 })
@@ -60,7 +60,7 @@ const main = async () => {
             task: async () => {
                 await runCommand({
                     command: 'npm',
-                    args: ['run', 'db:install'],
+                    args: ['run', 'backend:clean'],
                     cwd: rootDir,
                     silent: true
                 })
@@ -73,10 +73,10 @@ const main = async () => {
     success([
         c.bold(c.green('¡Proyecto listo!')),
         '',
-        c.gray('Frontend, backend y database instalados correctamente'),
+        c.gray('Frontend, backend y database limpiados correctamente'),
         c.gray(`Tiempo total: ${elapsed}`),
         '',
-        `Ejecuta ${c.bold(c.amber('npm run all:dev'))} para arrancar el proyecto.`
+        `Ejecuta ${c.bold(c.amber('npm run all:install'))} para instalar todo el proyecto.`
     ])
 }
 
