@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, copyFileSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import {
@@ -6,24 +6,30 @@ import {
     showHeader,
     runSteps,
     runCommand,
-    runCommandCapture,
     fail,
     success,
     formatDuration,
     satisfiesRange
 } from '../shared/index.js'
 
-// ============================================================
-// CONFIGURACIÓN
-// ============================================================
 const rootDir = process.cwd()
 const frontendDir = path.join(rootDir, 'frontend')
-const packageJson = path.join(frontendDir, 'package.json')
-const nodeModules = path.join(frontendDir, 'node_modules')
+const packageJsonFile = path.join(frontendDir, 'package.json')
+const nodeModulesDir = path.join(frontendDir, 'node_modules')
+const envExample = path.join(frontendDir, '.env.example')
+const envFile = path.join(frontendDir, '.env')
 
-// ============================================================
-// MAIN
-// ============================================================
+// Archivo opcional para declarar la versión mínima de Node
+// requerida por el proyecto, ej: ">=18.0.0". Se acepta ambos nombres.
+const nodeVersionFile = path.join(frontendDir, 'node-version')
+const nodeVersionFileAlt = path.join(frontendDir, '.nvmrc')
+
+const resolveNodeVersionFile = () => {
+    if (existsSync(nodeVersionFile)) return nodeVersionFile
+    if (existsSync(nodeVersionFileAlt)) return nodeVersionFileAlt
+    return null
+}
+
 const main = async () => {
     const startedAt = Date.now()
 
@@ -32,95 +38,73 @@ const main = async () => {
         description: 'Instalando dependencias del frontend'
     })
 
+    const currentNodeVersion = process.version.replace(/^v/, '')
+
     const steps = [
-        { status: 'pending', label: 'Verificando estructura del proyecto' },
-        { status: 'pending', label: 'Verificando package.json' },
-        { status: 'pending', label: 'Verificando versión de Node.js' },
-        { status: 'pending', label: 'Verificando npm' },
-        { status: 'pending', label: 'Instalando dependencias' }
+        { status: 'pending', label: 'Verificando estructura del frontend' },
+        { status: 'pending', label: 'Verificando versión de Node' },
+        { status: 'pending', label: 'Instalando dependencias (npm)' }
     ]
 
-    // Se llena en el paso 2 y lo reutilizan los pasos 3 y 5
-    // (evita leer/parsear el package.json más de una vez)
-    let pkg = null
-    let npmVersion = null
-    let alreadyInstalled = false
+    let envCreated = false
 
     await runSteps(steps, [
         {
-            percentage: 15,
+            percentage: 20,
             task: async () => {
-                if (!existsSync(frontendDir)) fail('No se encontró la carpeta frontend/')
+                if (!existsSync(frontendDir)) fail('No se encontró la carpeta frontend/.')
+                if (!existsSync(packageJsonFile)) fail('No se encontró frontend/package.json')
             }
         },
         {
-            percentage: 30,
+            percentage: 35,
             task: async () => {
-                if (!existsSync(packageJson)) fail('No se encontró frontend/package.json')
+                const versionFile = resolveNodeVersionFile()
 
-                try {
-                    pkg = JSON.parse(readFileSync(packageJson, 'utf8'))
-                } catch {
-                    fail('frontend/package.json no es un JSON válido')
+                if (versionFile) {
+                    const required = readFileSync(versionFile, 'utf8').trim()
+
+                    if (required && !satisfiesRange(currentNodeVersion, required)) {
+                        fail(
+                            'Versión de Node incompatible con el proyecto.',
+                            `Requerida: ${required}\nInstalada: ${currentNodeVersion}`
+                        )
+                    }
                 }
             }
         },
         {
-            percentage: 50,
+            // Mientras npm instala se ve 90% (no 100%, sigue trabajando)
+            percentage: { start: 35, end: 90 },
             task: async () => {
-                const required = pkg.engines?.node
-
-                // Si el proyecto no especifica engines.node, no bloquea.
-                if (!required) return
-
-                const currentVersion = process.version
-
-                if (!satisfiesRange(currentVersion, required)) {
-                    fail(
-                        'Versión de Node.js incompatible con el proyecto.',
-                        `Requerida: ${required}\nInstalada: ${currentVersion}`
-                    )
-                }
-            }
-        },
-        {
-            percentage: 65,
-            task: async () => {
-                try {
-                    npmVersion = await runCommandCapture({ command: 'npm', args: ['--version'] })
-                } catch {
-                    fail(
-                        'No se encontró npm.',
-                        'npm viene incluido con Node.js — reinstala Node.js desde nodejs.org'
-                    )
-                }
-            }
-        },
-        {
-            // Mientras "npm i" corre se ve 80% (no 100%, sigue instalando)
-            percentage: { start: 80, end: 100 },
-            task: async () => {
-                alreadyInstalled = existsSync(nodeModules)
-                if (!alreadyInstalled) {
-                    await runCommand({ command: 'npm', args: ['i'], cwd: frontendDir, silent: true })
-                }
+                await runCommand({
+                    command: 'npm',
+                    args: ['install'],
+                    cwd: frontendDir,
+                    silent: true,
+                    shell: false
+                })
             }
         }
     ])
 
+    // Copiar .env.example -> .env si falta (no bloqueante)
+    if (!existsSync(envFile) && existsSync(envExample)) {
+        copyFileSync(envExample, envFile)
+        envCreated = true
+    }
+
     const elapsed = formatDuration(Date.now() - startedAt)
-    const depsLine = alreadyInstalled
-        ? c.gray('Dependencias ya estaban instaladas')
-        : c.gray('Dependencias instaladas correctamente')
 
     success([
         c.bold(c.green('¡Frontend listo!')),
         '',
-        c.gray(`Node.js: ${process.version}   npm: ${npmVersion}`),
-        depsLine,
+        c.gray(`Node ${currentNodeVersion}`),
+        c.gray(existsSync(nodeModulesDir) ? 'Dependencias instaladas correctamente' : 'Dependencias instaladas'),
+        ...(envCreated ? [c.gray('Se generó frontend/.env a partir de .env.example')] : []),
         c.gray(`Tiempo total: ${elapsed}`),
         '',
-        `Ejecuta ${c.bold(c.amber('npm run frontend:dev'))} para iniciar el entorno de desarrollo.`
+        `Ejecuta ${c.bold(c.amber('npm run frontend:dev'))} para iniciar el servidor de desarrollo.`
     ])
 }
 

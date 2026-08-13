@@ -28,12 +28,13 @@ const main = async () => {
 
     const steps = [
         { status: 'pending', label: 'Instalando frontend' },
-        { status: 'pending', label: 'Instalando backend' }
+        { status: 'pending', label: 'Instalando backend' },
+        { status: 'pending', label: 'Instalando database' }
     ]
 
     await runSteps(steps, [
         {
-            percentage: { start: 0, end: 50 },
+            percentage: { start: 0, end: 30 },
             task: async () => {
                 await runCommand({
                     command: 'npm',
@@ -44,11 +45,22 @@ const main = async () => {
             }
         },
         {
-            percentage: { start: 50, end: 100 },
+            percentage: { start: 30, end: 80 },
             task: async () => {
                 await runCommand({
                     command: 'npm',
                     args: ['run', 'backend:install'],
+                    cwd: rootDir,
+                    silent: true
+                })
+            }
+        },
+        {
+            percentage: { start: 80, end: 100 },
+            task: async () => {
+                await runCommand({
+                    command: 'npm',
+                    args: ['run', 'db:install'],
                     cwd: rootDir,
                     silent: true
                 })
@@ -64,7 +76,7 @@ const main = async () => {
         c.gray('Frontend y backend instalados correctamente'),
         c.gray(`Tiempo total: ${elapsed}`),
         '',
-        `Ejecuta ${c.bold(c.amber('npm run frontend:dev'))} y ${c.bold(c.amber('npm run backend:start'))} para arrancar el proyecto.`
+        `Ejecuta ${c.bold(c.amber('npm run all:dev'))} para arrancar el proyecto.`
     ])
 }
 
