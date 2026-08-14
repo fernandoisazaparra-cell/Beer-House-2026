@@ -12,3 +12,7 @@ export {
 export {
     User
 } from './user/user'
+
+export {
+    LogoLine
+} from './logoLine/logoLine'

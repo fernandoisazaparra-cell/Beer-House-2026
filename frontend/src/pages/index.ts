@@ -1,6 +1,6 @@
 export { 
     Home 
-} from './Home/home'
+} from './home/home'
 
 export {
     MainLayout

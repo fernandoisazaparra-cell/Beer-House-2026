@@ -28,7 +28,7 @@ import {
 
 import {
     type MenuSection
-} from '@/config/menuConfig.types'
+} from '@/config'
 
 export const AsideFooter = () => {
     const { token, logout, login } = useAuth()
