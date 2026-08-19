@@ -1,3 +1,5 @@
 export {
-    AppRoutes
-} from './Router'
+    AppRoutes,
+} from './router'
+
+export * from './pages/authRouter'

@@ -12,13 +12,17 @@ import {
     MainLayout
 } from '@/pages'
 
+import {
+    AuthRoutesPublic
+} from './'
+
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
                 <Route element={<MainLayout />}>
-                    <Route index element={<Home/>}/>
-                    {/* <Route path='1' element={<Test2/>}/> */}
+                    <Route index element={<Home/>} />
+                    <Route path = "*" element={<AuthRoutesPublic />} />
                 </Route>
             </Routes>
         </BrowserRouter>

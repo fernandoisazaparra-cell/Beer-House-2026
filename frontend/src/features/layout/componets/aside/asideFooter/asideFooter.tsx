@@ -1,4 +1,5 @@
 import styles from './asideFooter.module.css'
+import { useNavigate } from 'react-router-dom';
 
 import {
     useAuth,
@@ -31,8 +32,9 @@ import {
 } from '@/config'
 
 export const AsideFooter = () => {
-    const { token, logout, login } = useAuth()
+    const { token, logout } = useAuth()
     const { isClose } = useLayout()
+        const navigate = useNavigate();
     const isResponsive = useMediaQuery({ query: BreakPoints.tablet })
 
     const FooterMenu: MenuSection[] = [
@@ -45,7 +47,7 @@ export const AsideFooter = () => {
         {
             title: "noLogin",
             items: [
-                { action: (login), icon: FaUser, label: 'Iniciar seccion', rol: ['user', 'admin'] },
+                { action: (() => navigate("/auth_registre")), icon: FaUser, label: 'Iniciar seccion', rol: ['user', 'admin'] },
             ]
         }
     ]

@@ -5,3 +5,7 @@ export {
 export {
     MainLayout
 } from './layouts/MainLayout'
+
+export {
+    RegisterPage
+} from './auth'
