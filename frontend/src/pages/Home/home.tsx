@@ -10,7 +10,11 @@ import {
   GoShieldCheck
 } from '@/ui/icons'
 
-import CategoryGrid from './components/CategoryGrid'
+import CategoryGrid from './components/sectionCategoryGrid'
+
+import { FeaturedProducts } from './components/sectionFeaturedProducts'
+
+import { Footer } from './components/Footer/Footer'
 
 import styles from './home.module.css'
 
@@ -19,7 +23,9 @@ import styles from './home.module.css'
 export const Home = () => {
   return (
     <>
-      <>
+
+
+
     <section className={styles.contentHome}>
         <img
           src={background}
@@ -88,9 +94,15 @@ export const Home = () => {
           </div>
         </div>
       </section>
-    </>
 
       <CategoryGrid />
+
+       {/* Marcas Premium + Productos Destacados */}
+      <FeaturedProducts />
+
+         {/* FOOTER */}
+      <Footer />
+    
     </>
   );
 };

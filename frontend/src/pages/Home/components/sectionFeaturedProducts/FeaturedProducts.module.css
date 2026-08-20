@@ -1,0 +1,718 @@
+/* =====================================================
+   CONTENEDOR PRINCIPAL
+   ===================================================== */
+
+.featuredSection {
+  width: 100%;
+  background: #171717;
+  padding-bottom: 4rem;
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   MARCAS PREMIUM
+   ===================================================== */
+
+.brandsContainer {
+  width: 100%;
+  background: #10100f;
+  padding: 1.5rem 2rem 1.7rem;
+}
+
+
+/* =====================================================
+   TÍTULO MARCAS PREMIUM
+   ===================================================== */
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1.5rem;
+
+  margin-bottom: 1.4rem;
+}
+
+
+/* Líneas decorativas */
+
+.sectionTitle span {
+  width: 2.8rem;
+  height: 1px;
+
+  background: #a88a42;
+}
+
+
+/* Texto */
+
+.sectionTitle h3 {
+  margin: 0;
+
+  color: #c8a85b;
+
+  font-family: var(--font-family-body);
+
+  font-size: 0.75rem;
+
+  font-weight: 600;
+
+  letter-spacing: 0.28rem;
+}
+
+
+/* =====================================================
+   SLIDER DE MARCAS
+   ===================================================== */
+
+.brandsSlider {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 1rem;
+}
+
+
+/* Contenedor de marcas */
+
+.brands {
+  width: min(100%, 900px);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 2rem;
+
+  overflow-x: auto;
+
+  scrollbar-width: none;
+}
+
+
+/* Ocultar scrollbar */
+
+.brands::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* =====================================================
+   CADA MARCA
+   ===================================================== */
+
+.brand {
+  width: 120px;
+
+  height: 60px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  transition: 0.3s ease;
+}
+
+
+/* Efecto hover */
+
+.brand:hover {
+  transform: scale(1.05);
+}
+
+
+/* =====================================================
+   IMAGEN DE LA MARCA
+   ===================================================== */
+
+.brandImage {
+  width: 110px;
+
+  height: 55px;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+
+/* =====================================================
+   ESPACIO VACÍO DEL LOGO
+   ===================================================== */
+
+.brandPlaceholder {
+  width: 110px;
+
+  height: 50px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border: 1px dashed #806b35;
+
+  color: #806b35;
+
+  font-size: 0.5rem;
+
+  letter-spacing: 0.05rem;
+}
+
+
+/* =====================================================
+   FLECHAS DE MARCAS
+   ===================================================== */
+
+.brandArrow {
+  border: none;
+
+  background: transparent;
+
+  color: #d6b768;
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+
+  flex-shrink: 0;
+}
+
+
+/* Hover */
+
+.brandArrow:hover {
+  color: #fff;
+
+  transform: scale(1.2);
+}
+
+
+/* =====================================================
+   CONTENEDOR PRODUCTOS
+   ===================================================== */
+
+.productsContainer {
+  width: min(100%, 1100px);
+
+  margin: 0 auto;
+
+  padding: 1.8rem 1.5rem 0;
+}
+
+
+/* =====================================================
+   SECCIÓN DE LA CASA
+   ===================================================== */
+
+.homeLabel {
+  text-align: center;
+
+  color: #b99446;
+
+  font-family: Georgia, serif;
+
+  font-size: 0.75rem;
+
+  font-weight: 600;
+
+  letter-spacing: 0.3rem;
+
+  margin-bottom: 0.3rem;
+}
+
+
+/* =====================================================
+   PRODUCTOS DESTACADOS
+   ===================================================== */
+
+.productsTitle {
+  margin: 0 0 1.3rem;
+
+  text-align: center;
+
+  color: #f4f1eb;
+
+  font-family: Georgia, serif;
+
+  font-size: 1.7rem;
+
+  letter-spacing: 0.18rem;
+}
+
+
+/* =====================================================
+   GRID DE PRODUCTOS
+   ===================================================== */
+
+.productsGrid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 1.3rem;
+}
+
+
+/* =====================================================
+   TARJETA
+   ===================================================== */
+
+.productCard {
+  background: #111111;
+
+  border: 1px solid #3d3627;
+
+  border-radius: 0.4rem;
+
+  overflow: hidden;
+
+  transition: 0.3s ease;
+}
+
+
+/* Hover */
+
+.productCard:hover {
+  border-color: #a88943;
+
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+
+/* =====================================================
+   ÁREA DE IMAGEN
+   ===================================================== */
+
+.productImage {
+  height: 190px;
+
+  position: relative;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      #624b25 0%,
+      #2b2114 32%,
+      #15120e 70%,
+      #0b0b0b 100%
+    );
+}
+
+
+/* Efecto de luz */
+
+.productImage::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02),
+      transparent 30%,
+      transparent 70%,
+      rgba(255, 255, 255, 0.02)
+    );
+}
+
+
+/* =====================================================
+   IMAGEN REAL DEL PRODUCTO
+   ===================================================== */
+
+.productImageFile {
+  position: relative;
+
+  z-index: 1;
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+
+/* =====================================================
+   ESPACIO VACÍO PARA LA IMAGEN
+   ===================================================== */
+
+.productImagePlaceholder {
+  position: relative;
+
+  z-index: 1;
+
+  width: 90%;
+
+  height: 90%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border: 1px dashed #806b35;
+
+  color: #806b35;
+
+  font-size: 0.55rem;
+
+  letter-spacing: 0.08rem;
+}
+
+
+/* =====================================================
+   ETIQUETA DESTACADO
+   ===================================================== */
+
+.featuredBadge {
+  position: absolute;
+
+  top: 0.45rem;
+
+  left: 0.45rem;
+
+  z-index: 3;
+
+  padding: 0.18rem 0.4rem;
+
+  border: 1px solid #9e803b;
+
+  border-radius: 0.2rem;
+
+  background: #16120b;
+
+  color: #d1af5a;
+
+  font-size: 0.5rem;
+
+  font-weight: 700;
+}
+
+
+/* =====================================================
+   BOTÓN FAVORITOS
+   ===================================================== */
+
+.favorite {
+  position: absolute;
+
+  top: 0.4rem;
+
+  right: 0.45rem;
+
+  z-index: 3;
+
+  border: none;
+
+  background: transparent;
+
+  color: #d1af5a;
+
+  font-size: 1.6rem;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+
+/* Hover */
+
+.favorite:hover {
+  color: #fff;
+
+  transform: scale(1.15);
+}
+
+
+/* =====================================================
+   INFORMACIÓN DEL PRODUCTO
+   ===================================================== */
+
+.productInfo {
+  padding: 0.55rem 0.65rem 0.7rem;
+}
+
+
+/* Nombre */
+
+.productInfo h3 {
+  margin: 0;
+
+  color: #e8e4dc;
+
+  font-family: Georgia, serif;
+
+  font-size: 0.76rem;
+
+  line-height: 1.1;
+}
+
+
+/* Tipo */
+
+.productType {
+  margin: 0.25rem 0;
+
+  color: #928b7e;
+
+  font-size: 0.54rem;
+}
+
+
+/* =====================================================
+   ESTRELLAS
+   ===================================================== */
+
+.rating {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.25rem;
+
+  margin-bottom: 0.2rem;
+}
+
+
+/* Estrellas */
+
+.rating span {
+  color: #c7a450;
+
+  font-size: 0.62rem;
+
+  letter-spacing: 0.03rem;
+}
+
+
+/* Reseñas */
+
+.rating small {
+  color: #77736d;
+
+  font-size: 0.5rem;
+}
+
+
+/* =====================================================
+   PRECIOS
+   ===================================================== */
+
+.priceContainer {
+  display: flex;
+
+  flex-direction: column;
+
+  position: relative;
+}
+
+
+/* Precio anterior */
+
+.oldPrice {
+  color: #77736d;
+
+  text-decoration: line-through;
+
+  font-size: 0.55rem;
+}
+
+
+/* Precio actual */
+
+.price {
+  color: #d3aa4e;
+
+  font-size: 0.85rem;
+}
+
+
+/* Stock */
+
+.stock {
+  position: absolute;
+
+  right: 0;
+
+  bottom: 0.1rem;
+
+  color: #6ea04e;
+
+  font-size: 0.5rem;
+}
+
+
+/* =====================================================
+   BOTÓN CARRITO
+   ===================================================== */
+
+.cartButton {
+  width: 100%;
+
+  margin-top: 0.45rem;
+
+  padding: 0.38rem 0.25rem;
+
+  border: 1px solid #866c35;
+
+  border-radius: 0.25rem;
+
+  background: transparent;
+
+  color: #c6a34e;
+
+  font-size: 0.48rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.04rem;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+
+/* Separación icono */
+
+.cartButton span {
+  margin-right: 0.25rem;
+}
+
+
+/* Hover */
+
+.cartButton:hover {
+  background: #b28d3c;
+
+  color: #15120d;
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+  /* Marcas desplazables */
+
+  .brands {
+    justify-content: flex-start;
+
+    padding: 0.3rem;
+  }
+
+
+  /* Dos productos por fila */
+
+  .productsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* =====================================================
+   CELULAR
+   ===================================================== */
+
+@media (max-width: 500px) {
+
+  .brandsContainer {
+    padding-left: 0.7rem;
+
+    padding-right: 0.7rem;
+  }
+
+
+  .sectionTitle {
+    gap: 0.7rem;
+  }
+
+
+  .sectionTitle h3 {
+    font-size: 0.6rem;
+
+    letter-spacing: 0.18rem;
+  }
+
+
+  .productsContainer {
+    padding-left: 0.7rem;
+
+    padding-right: 0.7rem;
+  }
+
+
+  .productsTitle {
+    font-size: 1.2rem;
+
+    letter-spacing: 0.1rem;
+  }
+
+
+  /* Dos tarjetas en celular */
+
+  .productsGrid {
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 0.6rem;
+  }
+
+
+  .productImage {
+    height: 160px;
+  }
+
+
+  .productInfo h3 {
+    font-size: 0.65rem;
+  }
+
+
+  .stock {
+    position: static;
+
+    margin-top: 0.15rem;
+  }
+
+}

@@ -1,4 +1,4 @@
-# 1 Capa
+   e# 1 Capa
 backend/
 ├── app/             # Aplicación Flask: bootstrap y configuración
 ├── features/        # El negocio: auth, users, products, sales, etc.
