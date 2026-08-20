@@ -31,6 +31,10 @@ import {
     type MenuSection
 } from '@/config'
 
+import {
+    API_ROUTES
+} from '@/app/api'
+
 export const AsideFooter = () => {
     const { token, logout } = useAuth()
     const { isClose } = useLayout()
@@ -47,7 +51,7 @@ export const AsideFooter = () => {
         {
             title: "noLogin",
             items: [
-                { action: (() => navigate("/auth_registre")), icon: FaUser, label: 'Iniciar seccion', rol: ['user', 'admin'] },
+                { action: (() => navigate(API_ROUTES.Auth.Registre)), icon: FaUser, label: 'Iniciar seccion', rol: ['user', 'admin'] },
             ]
         }
     ]

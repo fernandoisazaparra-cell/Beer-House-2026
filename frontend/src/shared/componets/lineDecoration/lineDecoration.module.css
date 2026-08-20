@@ -1,0 +1,27 @@
+.decorative_divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    color: var(--divider-color);
+}
+
+.decorative_divider__line {
+    flex: 1;
+    height: 1px;
+    background-color: var(--divider-color);
+}
+
+.decorative_divider__diamond {
+    width: 8px;
+    height: 8px;
+    background-color: var(--divider-color);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+}
+
+.decorative_divider__text {
+    color: var(--divider-color);
+    white-space: nowrap;
+    font-size: 0.875rem;
+}

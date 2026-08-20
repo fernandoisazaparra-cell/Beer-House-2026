@@ -1,24 +1,69 @@
-# from flask import Blueprint
-# from app.extensions import db
+from flask import Blueprint, request, jsonify
+from pydantic import ValidationError
 
-# main_bp = Blueprint("main", __name__)
+from .schemas import RegisterUserSchema
+from .error_helpers import (
+    traducir_errores_pydantic,
+    formatear_respuesta_errores,
+    formatear_respuesta_mensaje
+)
 
-# @main_bp.get("/health")
-# def health():
-#     try:
-#         db.session.execute(
-#             db.text("SELECT 1")
-#         )
+from ..application.dto import RegisterUserDTO
+from ..application.services import UserService
+from ..infrastructure.repository import SQLAlchemyUserRepository
+from ..domain.entities import User, DomainValidationError
 
-#         return {
-#             "status": "ok",
-#             "database": "connected"
-#         }
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-#     except Exception as error:
+@auth_bp.post('/register')
+def register():
+    data = request.get_json(silent=True)
 
-#         return {
-#             "status": "error",
-#             "database": "disconnected",
-#             "message": str(error)
-#         }, 500
+    if data is None:
+        return formatear_respuesta_mensaje('Body JSON inválido o vacío')
+
+    # 1. Validar formato con Pydantic (capturar errores, NO retornar aún)
+    try:
+        schema = RegisterUserSchema(**data)
+    except ValidationError as e:
+        errores_pydantic = traducir_errores_pydantic(e)
+    else:
+        errores_pydantic = {}
+
+    # 2. Validar reglas de dominio (capturar errores, NO retornar aún)
+    try:
+        User(
+            name=data.get('name', ''),
+            email=data.get('email', ''),
+            password=data.get('password', ''),
+            terms=data.get('terms', False)
+        )
+    except DomainValidationError as e:
+        errores_dominio = e.errors
+    else:
+        errores_dominio = {}
+
+    # 3. Combinar y retornar solo si hay errores
+    todos_errores = {**errores_pydantic, **errores_dominio}
+    if todos_errores:
+        return formatear_respuesta_errores(todos_errores)
+
+    # 4. Registrar usuario
+    dto = RegisterUserDTO(
+        name=schema.name,
+        email=schema.email,
+        password=schema.password,
+        terms=schema.terms
+    )
+
+    repository = SQLAlchemyUserRepository()
+    service = UserService(repository)
+
+    try:
+        service.register(dto)
+    except DomainValidationError as e:
+        return formatear_respuesta_errores(e.errors)
+    except ValueError as e:
+        return formatear_respuesta_mensaje(str(e))
+
+    return jsonify({'message': 'Usuario registrado correctamente'}), 201

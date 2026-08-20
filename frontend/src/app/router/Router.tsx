@@ -2,15 +2,12 @@ import {
     Route,
     Routes,
     BrowserRouter
-} from 'react-router-dom'
+} from 'react-router-dom';
 
 import {
-    Home
-} from '@/pages'
-
-import {
+    Home,
     MainLayout
-} from '@/pages'
+} from '@/pages';
 
 import {
     AuthRoutesPublic
@@ -20,11 +17,16 @@ export const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
+
+                {/* Rutas principales */}
                 <Route element={<MainLayout />}>
-                    <Route index element={<Home/>} />
-                    <Route path = "*" element={<AuthRoutesPublic />} />
+                    <Route
+                        index
+                        element={<Home />}
+                    />
+                    {AuthRoutesPublic}
                 </Route>
             </Routes>
         </BrowserRouter>
-    )
-}
+    );
+};

@@ -1,7 +1,8 @@
 export { 
     menuConfig,
     type MenuSection, 
-    type NavItemType 
+    type NavItemType,
+    type userRol
 } from './menuConfig'
 
 export {

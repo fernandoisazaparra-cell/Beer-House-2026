@@ -42,6 +42,9 @@
     --color-info: #3B82F6;
     --color-disabled: #666666;
 
+    /* State text */
+    --color-text-error: #EF4444;
+
     /* Links */
     --color-link: var(--color-brand);
     --color-link-hover: var(--color-brand-hover);

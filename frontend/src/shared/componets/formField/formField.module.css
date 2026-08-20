@@ -1,0 +1,100 @@
+.formField {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.formField label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Icono izquierdo */
+.inputWrapper > svg {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: var(--font-size-sm);
+    z-index: 1;
+    pointer-events: none;
+    color: var(--color-text-tertiary);
+    transition: color 0.2s ease;
+}
+
+.inputWrapper input {
+    width: 100%;
+    background-color: transparent;
+    font-size: var(--font-size-sm);
+    letter-spacing: var(--letter-spacing-tight);
+    padding: var(--space-2);
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    color: var(--color-text-primary);
+    border: 1.5px solid var(--color-border-primary);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.inputWrapper input::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+}
+
+.inputWrapper input:focus {
+    border-color: var(--color-text-primary);
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.05);
+}
+
+.inputWrapper:focus-within > svg {
+    color: var(--color-text-primary);
+}
+
+/* Botón mostrar/ocultar contraseña */
+.passwordToggle {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+    color: var(--color-text-primary);
+}
+
+.passwordToggle svg {
+    font-size: var(--font-size-sm);
+}
+
+.inputWrapper.inputError {
+    border-color: var(--color-error);
+}
+
+.inputWrapper.inputError:focus-within {
+    box-shadow: 0 0 0 2px rgb(239 68 68 / 0.15);
+}
+
+.error {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-error);
+}

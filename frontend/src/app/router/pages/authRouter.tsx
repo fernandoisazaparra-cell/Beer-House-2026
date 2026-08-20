@@ -1,20 +1,17 @@
 import {
     RegisterPage
-} from '@/pages/auth';
+} from '@/pages/auth/registerPage';
 
 import {
-    Routes,
     Route
 } from 'react-router-dom';
 
-export const Authroute = {
-    "registre": "auth/registre"
-}
+import {
+    API_ROUTES
+} from '@/app/api'
 
-export const AuthRoutesPublic = () => {
-    return (
-        <Routes>
-            <Route path={Authroute.registre} element={<RegisterPage />} />
-        </Routes>
-    )
-}
+export const AuthRoutesPublic = (
+    <>
+        <Route path={API_ROUTES.Auth.Registre} element={<RegisterPage />} />
+    </>
+)

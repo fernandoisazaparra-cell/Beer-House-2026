@@ -8,4 +8,4 @@ export {
 
 export {
     RegisterPage
-} from './auth'
+} from './auth/registerPage'

@@ -1,5 +1,7 @@
 import { useState } from "react"
-import type { userRol } from '@/config/menuConfig.types'
+import {
+    type userRol
+} from '@/config'
 
 import { useNavigate } from "react-router-dom";
 
@@ -18,16 +20,8 @@ export const useAuthState = () => {
 
     // States
     const [isAuth, setIsAuth] = useState(false)
-    const [token, setToken] = useState<string | null>(
-        "Jejeje soy falso >:D"
-    );
-    const [user, setUser] = useState<user | null>({
-        id: 1,
-        name: "Enana",
-        email: "Enana@gmail.com",
-        rol: "admin",
-        img: UserBeta
-    });
+    const [token, setToken] = useState<string | null>();
+    const [user, setUser] = useState<user | null>();
 
     const currentRole = user?.rol ?? "guest"
 

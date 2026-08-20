@@ -28,6 +28,10 @@ import {
     useAuth
 } from '@/app/context'
 
+import {
+    API_ROUTES
+} from '@/app/api'
+
 export const Header = () => {
     const { token } = useAuth()
     const navigate = useNavigate();
@@ -82,7 +86,7 @@ export const Header = () => {
                     ): !isCompact ? (
                         <div className={styles.contentLogin}>
                             <button 
-                                onClick={() => navigate("/auth_registre")}
+                                onClick={() => navigate(API_ROUTES.Auth.Registre)}
                                 className={styles.login}
                             >
                                 <h2>Iniciar seccion</h2>
