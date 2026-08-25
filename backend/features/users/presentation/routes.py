@@ -18,9 +18,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 @auth_bp.post('/register')
 def register():
     data = request.get_json(silent=True)
-
-    if data is None:
-        return formatear_respuesta_mensaje('Body JSON inválido o vacío')
+    if data is None: return formatear_respuesta_mensaje('Body JSON inválido o vacío')
 
     # 1. Validar formato con Pydantic (capturar errores, NO retornar aún)
     try:
@@ -36,7 +34,8 @@ def register():
             name=data.get('name', ''),
             email=data.get('email', ''),
             password=data.get('password', ''),
-            terms=data.get('terms', False)
+            terms=data.get('terms', False),
+            years=data.get('years', False)
         )
     except DomainValidationError as e:
         errores_dominio = e.errors
@@ -53,7 +52,8 @@ def register():
         name=schema.name,
         email=schema.email,
         password=schema.password,
-        terms=schema.terms
+        terms=schema.terms,
+        years=schema.years
     )
 
     repository = SQLAlchemyUserRepository()

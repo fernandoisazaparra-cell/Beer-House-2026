@@ -8,3 +8,4 @@ class RegisterUserSchema(BaseModel):
     email: EmailStr
     password: str
     terms: bool
+    years: bool

@@ -20,6 +20,8 @@ export const RegistreForm = () => {
     const {
         terms,
         setTerms,
+        year,
+        setYear,
         isLoading,
         errors,
         handleSubmit
@@ -50,6 +52,7 @@ export const RegistreForm = () => {
                     placeholder='Ingrese tu nombre completo'
                     icon={<FaUser />}
                     error={getFieldError('name')}
+                    autoComplete='off'
                 />
                 <FormField
                     label='Correo eletronico'
@@ -57,6 +60,7 @@ export const RegistreForm = () => {
                     placeholder='Ingrese tu correo electrónico'
                     icon={<SiGmail />}
                     error={getFieldError('email')}
+                    autoComplete='off'
                 />
                 <FormField
                     label='Contraseña'
@@ -65,6 +69,7 @@ export const RegistreForm = () => {
                     type='password'
                     icon={<FaLock />}
                     error={getFieldError('password')}
+                    autoComplete='new-password'
                 />
 
                 <FormCheckbox
@@ -74,6 +79,15 @@ export const RegistreForm = () => {
                     error={getFieldError('terms')}
                 >
                     Acepto los <a href="">Términos y Condiciones</a> y la <a href="">Política de Privacidad</a>
+                </FormCheckbox>
+
+                <FormCheckbox
+                    name="years"
+                    checked={year}
+                    onChange={() => setYear((prev) => !prev)}
+                    error={getFieldError('years')}
+                >
+                    Declaro bajo mi responsabilidad que soy mayor de 18 años
                 </FormCheckbox>
 
                 {errors.general && (

@@ -9,6 +9,7 @@ import {
 
 export const useRegistreForm = () => {
     const [terms, setTerms] = useState(false)
+    const [year, setYear] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState<Record<string, string[]>>({})
 
@@ -23,7 +24,8 @@ export const useRegistreForm = () => {
             name: formData.get('name') as string,
             email: formData.get('email') as string,
             password: formData.get('password') as string,
-            terms
+            terms,
+            year
         }
 
         try {
@@ -47,6 +49,9 @@ export const useRegistreForm = () => {
     return {
         terms,
         setTerms,
+
+        year,
+        setYear,
 
         isLoading,
         errors,

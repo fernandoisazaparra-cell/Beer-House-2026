@@ -25,7 +25,9 @@ const main = async () => {
         description: 'Corriendo tests del backend'
     })
 
-    if (!existsSync(backendDir)) fail('No se encontró la carpeta backend/.')
+    if (!existsSync(backendDir)) {
+        fail('No se encontró la carpeta backend/.')
+    }
 
     const python = getVenvPython(backendDir)
 
@@ -36,41 +38,94 @@ const main = async () => {
         )
     }
 
-    const env = existsSync(envFile) ? parseEnvFile(envFile) : {}
+    const env = existsSync(envFile)
+        ? parseEnvFile(envFile)
+        : {}
 
-    const steps = [{ status: 'pending', label: 'Corriendo tests (pytest)' }]
+    // Argumentos opcionales después de "--"
+    const testArgs = process.argv.slice(2)
+
+    const steps = [
+        {
+            status: 'pending',
+            label: testArgs.length
+                ? `Corriendo tests: ${testArgs.join(' ')}`
+                : 'Corriendo todos los tests (pytest)'
+        }
+    ]
+
+    let output = ''
 
     await runSteps(steps, [
         {
             percentage: { start: 0, end: 100 },
+
             task: async () => {
                 try {
-                    await runCommand({
+                    const result = await runCommand({
                         command: python,
-                        args: ['-m', 'pytest'],
+                        args: [
+                            '-m',
+                            'pytest',
+                            ...testArgs
+                        ],
                         cwd: backendDir,
-                        env: { ...process.env, ...env },
+                        env: {
+                            ...process.env,
+                            ...env
+                        },
                         silent: true,
                         shell: false
                     })
+
+                    output = result.stdout ?? ''
                 } catch (err) {
+                    console.error(err)
+
                     fail(
-                        'Los tests fallaron, o pytest no está instalado.',
-                        'Si no lo tienes: agrega "pytest" a backend/requirements.txt ' +
-                        'y corre npm run backend:install.'
+                        'Los tests fallaron.',
+                        err.message
                     )
                 }
             }
         }
     ])
 
-    const elapsed = formatDuration(Date.now() - startedAt)
+    // =========================
+    // RESULTADOS DE PYTEST
+    // =========================
+
+    const passedMatch = output.match(/(\d+) passed/)
+    const failedMatch = output.match(/(\d+) failed/)
+    const skippedMatch = output.match(/(\d+) skipped/)
+
+    const passed = passedMatch
+        ? Number(passedMatch[1])
+        : 0
+
+    const failed = failedMatch
+        ? Number(failedMatch[1])
+        : 0
+
+    const skipped = skippedMatch
+        ? Number(skippedMatch[1])
+        : 0
+
+    const elapsed = formatDuration(
+        Date.now() - startedAt
+    )
 
     success([
         c.bold(c.green('¡Tests pasados!')),
+        '',
+        c.green(`Tests pasados: ${passed}`),
+        c.gray(`Tests fallidos: ${failed}`),
+        c.gray(`Tests omitidos: ${skipped}`),
         '',
         c.gray(`Tiempo total: ${elapsed}`)
     ])
 }
 
-main().catch((err) => fail(err.message, err.details))
+main().catch((err) => {
+    fail(err.message, err.details)
+})

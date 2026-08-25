@@ -26,7 +26,7 @@ export const FormCheckbox = ({
                     onChange={onChange}
                 />
 
-                <span className={styles.checkbox}>
+                <span className={`${styles.checkbox} ${error ? styles.errorCheck : ''}`}>
                     {checked && <FiCheck />}
                 </span>
 

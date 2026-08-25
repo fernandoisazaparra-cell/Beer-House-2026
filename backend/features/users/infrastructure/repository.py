@@ -10,7 +10,7 @@ class SQLAlchemyUserRepository(UserRepository):
         model = UserModel(
             name=user.name,
             email=user.email,
-            password=user.password
+            password=user.password,
         )
         db.session.add(model)
         db.session.commit()

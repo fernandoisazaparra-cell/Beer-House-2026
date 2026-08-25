@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 from app.extensions import db
 
 # Este es el modelo de SQLAlchemy: representa la TABLA en la
@@ -10,3 +9,7 @@ class UserModel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+
+    terms_accepted_at = db.Column(db.DateTime, nullable=False)
+    age_confirmed_at = db.Column(db.DateTime, nullable=False)
+    terms_version = db.Column(db.String(20), nullable=True)

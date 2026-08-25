@@ -9,3 +9,4 @@ class RegisterUserDTO:
     email: str
     password: str
     terms: bool
+    years: bool

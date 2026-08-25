@@ -86,11 +86,15 @@
     font-size: var(--font-size-sm);
 }
 
-.inputWrapper.inputError {
+.inputWrapper.inputError input {
     border-color: var(--color-error);
 }
 
-.inputWrapper.inputError:focus-within {
+.inputWrapper.inputError svg {
+    color: var(--color-error);
+}
+
+.inputWrapper.inputError input:focus-within {
     box-shadow: 0 0 0 2px rgb(239 68 68 / 0.15);
 }
 

@@ -20,6 +20,5 @@ def traducir_errores_pydantic(validation_error: ValidationError) -> dict[str, li
 def formatear_respuesta_errores(errores: dict[str, list[str]]) -> tuple[dict, int]:
     return {'errors': errores}, 400
 
-
 def formatear_respuesta_mensaje(mensaje: str, status: int = 400) -> tuple[dict, int]:
     return {'message': mensaje}, status
