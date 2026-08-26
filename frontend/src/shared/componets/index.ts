@@ -28,3 +28,7 @@ export {
 export {
     FormCheckbox
 } from './formCheckbox/formCheckbox'
+
+export {
+    VerifyTokenModal
+} from './modal/modalToken'

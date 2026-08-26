@@ -11,5 +11,6 @@ export {
     FaEyeSlash,
     FaCheck,
     FaGoogle,
-    FaFacebookF 
+    FaFacebookF,
+    FaTimes
 } from "react-icons/fa";

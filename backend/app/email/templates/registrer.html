@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beer House</title>
+</head>
+
+<body style="
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    font-family: Arial, Helvetica, sans-serif;
+">
+
+    <div style="
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+    ">
+
+        <h1 style="
+            margin: 0 0 20px;
+            color: #d4a017;
+        ">
+            Beer House
+        </h1>
+
+        <h2 style="
+            margin: 0 0 15px;
+            color: #333333;
+        ">
+            Verifica tu correo
+        </h2>
+
+        <p style="
+            margin: 0 0 25px;
+            color: #555555;
+            font-size: 16px;
+            line-height: 1.6;
+        ">
+            Utiliza el siguiente código para verificar tu cuenta:
+        </p>
+
+        <div style="
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            text-align: center;
+        ">
+
+            <span style="
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                color: #d4a017;
+            ">
+                {{ code }}
+            </span>
+
+        </div>
+
+        <p style="
+            margin: 0;
+            color: #777777;
+            font-size: 14px;
+            line-height: 1.5;
+        ">
+            Este código expirará en 10 minutos.
+        </p>
+
+    </div>
+
+</body>
+
+</html>

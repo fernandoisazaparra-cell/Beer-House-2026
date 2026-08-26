@@ -10,3 +10,8 @@ class RegisterUserDTO:
     password: str
     terms: bool
     years: bool
+
+@dataclass
+class VerifyEmailDTO:
+    email: str
+    code: str

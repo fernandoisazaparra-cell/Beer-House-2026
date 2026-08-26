@@ -9,3 +9,7 @@ class RegisterUserSchema(BaseModel):
     password: str
     terms: bool
     years: bool
+
+class VerifyEmailSchema(BaseModel):
+    email: EmailStr
+    code: str

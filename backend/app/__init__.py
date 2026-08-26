@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from app.routes import main_bp
 from features.users.presentation.routes import auth_bp
+from app.scheduler import start_scheduler
 
 from config.settings import Config
 
@@ -24,4 +25,5 @@ def create_app():
     # Importar modelos para que SQLAlchemy los conozca
     from features.users.infrastructure.models import UserModel
 
+    start_scheduler()
     return app
