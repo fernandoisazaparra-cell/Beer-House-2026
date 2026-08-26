@@ -122,5 +122,15 @@ class EmailVerification:
     def __init__(self, email, code):
         errors = {}
 
-        self.email = email
-        self.code = code
+        if not email:
+            errors.setdefault('email', []).append('El email es obligatorio')
+        if not code:
+            errors.setdefault('code', []).append('El código es obligatorio')
+        elif len(code) != 6:
+            errors.setdefault('code', []).append('El código debe tener 6 caracteres')
+
+        if errors:
+            raise DomainValidationError(errors)
+
+        self.email = "".join(email.strip().split()).lower()
+        self.code = code.strip()

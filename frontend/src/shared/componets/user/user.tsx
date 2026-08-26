@@ -13,6 +13,14 @@ interface UserProps {
     isClose?: boolean
 }
 
+const getInitials = (name: string): string => {
+    const parts = name.trim().split(/\s+/)
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return parts[0][0].toUpperCase()
+}
+
 export const User = ({
     variant = 'header',
     isClose = false,
@@ -28,8 +36,8 @@ export const User = ({
                 ${variant === 'aside' && isClose ? styles.close : ''}
             `}
         >
-            <div className={styles.userImg}>
-                <img src={user.img} alt={user.name} />
+            <div className={styles.userInitials}>
+                {getInitials(user.name)}
             </div>
 
             <div className={styles.userText}>

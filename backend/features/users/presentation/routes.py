@@ -134,4 +134,11 @@ def verify_email():
     repository = SQLAlchemyUserRepository()
     service = UserService(repository)
     
-    return jsonify({'message': 'Código recibido correctamente'}), 201
+    try:
+        service.verify_email(dto)
+    except DomainValidationError as e:
+        return formatear_respuesta_errores(e.errors)
+    except ValueError as e:
+        return formatear_respuesta_mensaje(str(e))
+
+    return jsonify({'message': 'Correo verificado correctamente'}), 200

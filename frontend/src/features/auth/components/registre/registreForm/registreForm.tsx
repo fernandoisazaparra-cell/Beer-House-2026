@@ -1,10 +1,6 @@
 import styles from './registreForm.module.css'
 
 import {
-    useState
-} from 'react'
-
-import {
     LineDecoration,
     FormField,
     FormCheckbox,
@@ -34,7 +30,9 @@ export const RegistreForm = () => {
         showVerify,
         setShowVerify,
         registeredEmail,
-        handleVerify
+        handleVerify,
+        verifyError,
+        setVerifyError
 
     } = useRegistreForm()
 
@@ -140,9 +138,13 @@ export const RegistreForm = () => {
 
             <VerifyTokenModal
                 isOpen={showVerify}
-                onClose={() => setShowVerify(false)}
+                onClose={() => {
+                    setShowVerify(false)
+                    setVerifyError({})
+                }}
                 email={registeredEmail}
                 onVerify={handleVerify}
+                error={verifyError.code?.[0]}
             />
         </>
     )

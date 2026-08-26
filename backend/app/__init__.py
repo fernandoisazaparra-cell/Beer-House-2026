@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from app.routes import main_bp
 from features.users.presentation.routes import auth_bp
+from features.users.presentation.auth_routes import auth_routes_bp
 from app.scheduler import start_scheduler
 
 from config.settings import Config
@@ -21,9 +22,10 @@ def create_app():
     # Routes
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_routes_bp)
 
     # Importar modelos para que SQLAlchemy los conozca
-    from features.users.infrastructure.models import UserModel
+    from features.users.infrastructure.models import UserModel, PendingRegistration
 
-    start_scheduler()
+    start_scheduler(app)
     return app

@@ -16,6 +16,21 @@ export interface VerifyEmailData {
     code: string
 }
 
+export interface LoginData {
+    email: string
+    password: string
+}
+
+export interface LoginResponse {
+    token: string
+    user: {
+        id: number
+        name: string
+        email: string
+        rol: string
+    }
+}
+
 export interface FieldErrors {
     errors: Record<string, string[]>
 }
@@ -56,6 +71,27 @@ export const verifyEmail = async (
         {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+        throw result as ApiErrorResponse
+    }
+
+    return result
+}
+
+export const loginUser = async (
+    data: LoginData
+): Promise<LoginResponse> => {
+    const response = await fetch(
+        `${API_URL}${API_ROUTES.Auth.Login}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }
     )

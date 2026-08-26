@@ -3,6 +3,10 @@ import React, {
 } from 'react'
 
 import {
+    useAuth
+} from '@/app/context'
+
+import {
     registreUser,
     verifyEmail,
     type ApiErrorResponse
@@ -10,12 +14,16 @@ import {
 
 
 export const useRegistreForm = () => {
+    const { login } = useAuth()
+
     const [terms, setTerms] = useState(false)
     const [years, setYear] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState<Record<string, string[]>>({})
     const [showVerify, setShowVerify] = useState(false)
     const [registeredEmail, setRegisteredEmail] = useState('')
+    const [registeredPassword, setRegisteredPassword] = useState('')
+    const [verifyError, setVerifyError] = useState<Record<string, string[]>>({})
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -34,6 +42,7 @@ export const useRegistreForm = () => {
 
             await registreUser(data)
             setRegisteredEmail(data.email)
+            setRegisteredPassword(data.password)
             setShowVerify(true)
         } catch (err) {
             const result = err as ApiErrorResponse
@@ -49,14 +58,21 @@ export const useRegistreForm = () => {
 
     const handleVerify = async (code: string) => {
         try {
+            setVerifyError({})
             await verifyEmail({
                 email: registeredEmail,
                 code
             })
 
             setShowVerify(false)
+            await login(registeredEmail, registeredPassword)
         } catch (err) {
-            console.log(err)
+            const result = err as ApiErrorResponse
+            if ('errors' in result) {
+                setVerifyError(result.errors)
+            } else if ('message' in result) {
+                setVerifyError({ code: [result.message] })
+            }
         }
     }
 
@@ -78,6 +94,9 @@ export const useRegistreForm = () => {
 
         registeredEmail,
 
-        handleVerify
+        handleVerify,
+
+        verifyError,
+        setVerifyError
     }
 }

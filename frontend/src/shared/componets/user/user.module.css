@@ -17,10 +17,10 @@
     overflow: hidden;
 }
 
-.ContentUser.aside .userImg img {
-    width: auto;
-    height: var(--header-height);
-    padding: var(--space-3);
+.ContentUser.aside .userInitials {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: var(--space-1);
 }
 
 .ContentUser.aside.close .userText,
@@ -53,17 +53,19 @@
     color: var(--color-text-primary);
 }
 
-.userImg {
+.userInitials {
     flex-shrink: 0;
-}
-
-.userImg img {
-    width: 2.8rem;
-    aspect-ratio: 1/1;
-    object-fit: cover;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: var(--radius-full);
-    padding: var(--space-1);
-    box-sizing: border-box;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.05em;
 }
 
 .userText {
@@ -97,7 +99,7 @@
     white-space: nowrap;
 }
 
-.ContentUser.aside .userImg {
+.ContentUser.aside .userInitials {
     width: 4rem;
     display: flex;
     align-items: center;
@@ -106,19 +108,13 @@
     padding: 0.2rem;
 }
 
-.ContentUser.aside .userImg img {
-    width: 3.3rem;
-    height: 3.3rem;
-    padding: var(--space-1);
-}
-
-.ContentUser.header .userImg img,
-.ContentUser.aside.close .userImg img {
+.ContentUser.header .userInitials,
+.ContentUser.aside.close .userInitials {
     transition: var(--transition-normal);
     cursor: pointer;
 }
 
-.ContentUser.header .userImg img:hover,
-.ContentUser.aside.close .userImg img:hover {
+.ContentUser.header .userInitials:hover,
+.ContentUser.aside.close .userInitials:hover {
     border: 2px solid var(--color-accent);
 }

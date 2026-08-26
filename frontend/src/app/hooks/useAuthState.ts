@@ -1,51 +1,57 @@
 import { useState } from "react"
-import {
-    type userRol
-} from '@/config'
-
-import { useNavigate } from "react-router-dom";
-
-import UserBeta from '@/ui/assets/UserTest.webp'
+import { type userRol } from '@/config'
+import { useNavigate } from "react-router-dom"
+import { loginUser, type LoginResponse } from '@/features/auth/services'
 
 export interface user {
-    id: number;
-    name: string;
-    email: string;
-    rol: userRol;
-    img: string
+    id: number
+    name: string
+    email: string
+    rol: string
 }
 
+const STORAGE_KEY_TOKEN = 'bh_token'
+const STORAGE_KEY_USER = 'bh_user'
+
 export const useAuthState = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
-    // States
-    const [isAuth, setIsAuth] = useState(false)
-    const [token, setToken] = useState<string | null>();
-    const [user, setUser] = useState<user | null>();
+    const [isAuth, setIsAuth] = useState(() => {
+        return !!localStorage.getItem(STORAGE_KEY_TOKEN)
+    })
 
-    const currentRole = user?.rol ?? "guest"
+    const [token, setToken] = useState<string | null>(() => {
+        return localStorage.getItem(STORAGE_KEY_TOKEN)
+    })
 
-    // Toggles
-    const ToggleAuth = () => setIsAuth((prev) => !prev)
+    const [user, setUser] = useState<user | null>(() => {
+        const stored = localStorage.getItem(STORAGE_KEY_USER)
+        return stored ? JSON.parse(stored) : null
+    })
+
+    const currentRole: userRol = (user?.rol ?? "guest") as userRol
+
     const SetAuth = () => setIsAuth(true)
     const NotAuth = () => setIsAuth(false)
 
-    // Actions
-    const logout = async () => {
-        setUser(null)
-        setToken(null)
+    const login = async (email: string, password: string) => {
+        const result: LoginResponse = await loginUser({ email, password })
+
+        localStorage.setItem(STORAGE_KEY_TOKEN, result.token)
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(result.user))
+
+        setToken(result.token)
+        setUser(result.user)
+        setIsAuth(true)
         navigate("/")
     }
 
-    const login = async () => {
-        setUser({
-            id: 1,
-            name: "Enana",
-            email: "Enana@gmail.com",
-            rol: "admin",
-            img: UserBeta
-        })
-        setToken("Jejeje soy falso >:D")
+    const logout = () => {
+        localStorage.removeItem(STORAGE_KEY_TOKEN)
+        localStorage.removeItem(STORAGE_KEY_USER)
+        setToken(null)
+        setUser(null)
+        setIsAuth(false)
         navigate("/")
     }
 
@@ -53,7 +59,6 @@ export const useAuthState = () => {
         isAuth,
         SetAuth,
         NotAuth,
-        ToggleAuth,
 
         token,
         setToken,

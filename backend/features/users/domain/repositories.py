@@ -30,3 +30,11 @@ class UserRepository(ABC):
     @abstractmethod
     def delete_expired_pending_registrations(self):
         pass
+
+    @abstractmethod
+    def register_failed_login(self, user):
+        pass
+
+    @abstractmethod
+    def reset_failed_logins(self, user):
+        pass

@@ -1,7 +1,6 @@
 import {
     Route,
-    Routes,
-    BrowserRouter
+    Routes
 } from 'react-router-dom';
 
 import {
@@ -15,18 +14,16 @@ import {
 
 export const AppRoutes = () => {
     return (
-        <BrowserRouter>
-            <Routes>
+        <Routes>
 
-                {/* Rutas principales */}
-                <Route element={<MainLayout />}>
-                    <Route
-                        index
-                        element={<Home />}
-                    />
-                    {AuthRoutesPublic}
-                </Route>
-            </Routes>
-        </BrowserRouter>
+            {/* Rutas principales */}
+            <Route element={<MainLayout />}>
+                <Route
+                    index
+                    element={<Home />}
+                />
+                {AuthRoutesPublic}
+            </Route>
+        </Routes>
     );
 };

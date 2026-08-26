@@ -1,7 +1,7 @@
-from datetime import datetime, UTC, timedelta
-import hashlib
+from datetime import datetime, timedelta, UTC
 import secrets
 
+from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
 from .models import UserModel, PendingRegistration
@@ -20,17 +20,16 @@ def generate_verification_code():
     )
 
 def hash_verification_code(code: str) -> str:
-    return hashlib.sha256(code.encode("utf-8")).hexdigest()
+    return generate_password_hash(code, method='pbkdf2:sha256')
 
 class SQLAlchemyUserRepository(UserRepository):
     def create(self, user):
-        now = datetime.now(UTC)
-        # password_hast = hash_verification_code(user.password)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         model = UserModel(
             name=user.name,
             email=user.email,
-            password=user.password,
+            password=generate_password_hash(user.password, method='pbkdf2:sha256'),
             terms_accepted_at=now,
             age_confirmed_at=now,
             terms_version="v1.0"
@@ -41,7 +40,7 @@ class SQLAlchemyUserRepository(UserRepository):
         return model
 
     def create_pending_registration(self, user):
-        now = datetime.now(UTC)
+        now = datetime.now(UTC).replace(tzinfo=None)
         code = generate_verification_code()
         code_hash = hash_verification_code(code)
 
@@ -61,7 +60,7 @@ class SQLAlchemyUserRepository(UserRepository):
 
         db.session.add(model)
         db.session.commit()
-        return model, code
+        return code
 
     def find_by_email(self, email):
         return UserModel.query.filter_by(email=email).first()
@@ -70,7 +69,7 @@ class SQLAlchemyUserRepository(UserRepository):
         return PendingRegistration.query.filter_by(email=email).first()
 
     def update_pending_registration(self, pending, user):
-        now = datetime.now(UTC)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         code = generate_verification_code()
         code_hash = hash_verification_code(code)
@@ -85,13 +84,14 @@ class SQLAlchemyUserRepository(UserRepository):
         pending.attempts_used = 0
         pending.created_at = now
         pending.expires_at = now + timedelta(minutes=10)
+        pending.locked_until = None
 
         db.session.commit()
 
         return code
 
     def delete_expired_pending_registrations(self):
-        now = datetime.now(UTC)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         deleted = PendingRegistration.query.filter(
             PendingRegistration.expires_at < now
@@ -104,4 +104,15 @@ class SQLAlchemyUserRepository(UserRepository):
 
     def delete_pending_registration(self, pending):
         db.session.delete(pending)
+        db.session.commit()
+
+    def register_failed_login(self, user):
+        user.failed_login_attempts += 1
+        if user.failed_login_attempts >= 5:
+            user.locked_until = datetime.now(UTC).replace(tzinfo=None) + timedelta(minutes=15)
+        db.session.commit()
+
+    def reset_failed_logins(self, user):
+        user.failed_login_attempts = 0
+        user.locked_until = None
         db.session.commit()
