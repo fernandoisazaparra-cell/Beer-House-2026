@@ -24,23 +24,23 @@ import styles from './FeaturedProducts.module.css'
 const brands = [
   {
     name: "JACK DANIEL'S",
-    image: "frontend/src/ui/assets/ing/Products/2603712280137549-removebg-preview.png"
+    image: "./src/ui/assets/img2/marcas/563018697248088-removebg-preview.png"
   },
   {
     name: "JOHNNIE WALKER",
-    image: ""
+    image: "./src/ui/assets/img2/marcas/9781324183546597-removebg-preview.png"
   },
   {
     name: "CHIVAS",
-    image: ""
+    image: "./src/ui/assets/img2/marcas/67413325663848126-removebg-preview.png"
   },
   {
-    name: "BUCHANAN'S",
-    image: ""
+    name: "Aguardiente_Antioqueño",
+    image: "./src/ui/assets/img2/marcas/AGUARDIENTE_ANTIOQUEÑO_Logo_PNG_Vector__CDR__Free_Download-removebg-preview (1).png"
   },
   {
-    name: "OLD PARR",
-    image: ""
+    name: "Ron",
+    image: "./src/ui/assets/img2/marcas/Ron_Viejo_de_Caldas_Logo_PNG_Vector__AI__Free_Download-removebg-preview.png"
   },
   {
     name: "ABSOLUT",
@@ -283,9 +283,9 @@ export const FeaturedProducts = () => {
                   /*
                     ESTE ES EL ESPACIO VACÍO PARA TU IMAGEN.
                   */
-
+                 
+                  
                   <div className={styles.productImagePlaceholder}>
-                    IMAGEN DEL PRODUCTO
                   </div>
 
                 )}
