@@ -5,3 +5,5 @@ export {
 export {
     MainLayout
 } from './layouts/MainLayout'
+
+export { ProductsPage } from './Products'

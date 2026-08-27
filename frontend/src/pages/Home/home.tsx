@@ -14,7 +14,10 @@ import CategoryGrid from './components/sectionCategoryGrid'
 
 import { FeaturedProducts } from './components/sectionFeaturedProducts'
 
+import { Products } from './components/Products/Products'
+
 import { Footer } from './components/Footer/Footer'
+
 
 import styles from './home.module.css'
 
@@ -99,6 +102,8 @@ export const Home = () => {
 
        {/* Marcas Premium + Productos Destacados */}
       <FeaturedProducts />
+
+       <Products/>
 
          {/* FOOTER */}
       <Footer />

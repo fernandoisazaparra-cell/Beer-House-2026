@@ -5,7 +5,7 @@ import {
 } from 'react-router-dom'
 
 import {
-    Home
+    Home,ProductsPage
 } from '@/pages'
 
 import {
@@ -19,6 +19,7 @@ export const AppRoutes = () => {
                 <Route element={<MainLayout />}>
                     <Route index element={<Home/>}/>
                     {/* <Route path='1' element={<Test2/>}/> */}
+                     <Route path="productos" element={<ProductsPage/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

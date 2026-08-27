@@ -1,4 +1,5 @@
 export { 
     FaRegStar,
-    FaUser 
+    FaUser,
+    FaWineBottle 
 } from "react-icons/fa";

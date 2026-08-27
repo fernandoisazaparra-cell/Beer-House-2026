@@ -24,7 +24,7 @@ import styles from './FeaturedProducts.module.css'
 const brands = [
   {
     name: "JACK DANIEL'S",
-    image: ""
+    image: "frontend/src/ui/assets/ing/Products/2603712280137549-removebg-preview.png"
   },
   {
     name: "JOHNNIE WALKER",
@@ -66,7 +66,17 @@ const products = [
   {
     name: "Reserva Ámbar 12 Años",
     type: "Whisky",
-    image: "",
+    image: "./src/ui/assets/ing/Products/2603712280137549-removebg-preview.png",
+    price: "$85.000",
+    oldPrice: "$450.000",
+    rating: "★★★★★",
+    reviews: "(245)"
+  },
+
+  {
+    name: "Reserva Ámbar 12 Años",
+    type: "Whisky",
+    image: "./src/ui/assets/ing/Products/AGUARDIENTE AGUARDIENTE ROJO ANTIOQUEÑO 750ML.jpg",
     price: "$385.000",
     oldPrice: "$450.000",
     rating: "★★★★★",
@@ -76,7 +86,7 @@ const products = [
   {
     name: "Reserva Ámbar 12 Años",
     type: "Whisky",
-    image: "",
+    image: "./src/ui/assets/ing/Products/Don_Julio_Reposado-removebg-preview.png",
     price: "$385.000",
     oldPrice: "$450.000",
     rating: "★★★★★",
@@ -86,17 +96,7 @@ const products = [
   {
     name: "Reserva Ámbar 12 Años",
     type: "Whisky",
-    image: "",
-    price: "$385.000",
-    oldPrice: "$450.000",
-    rating: "★★★★★",
-    reviews: "(245)"
-  },
-
-  {
-    name: "Reserva Ámbar 12 Años",
-    type: "Whisky",
-    image: "",
+    image: "./src/ui/assets/ing/Products/Buchanan_s_12_Years_Aged-removebg-preview.png",
     price: "$385.000",
     oldPrice: "$450.000",
     rating: "★★★★★",
