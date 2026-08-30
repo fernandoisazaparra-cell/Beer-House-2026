@@ -44,7 +44,7 @@ const brands = [
   },
   {
     name: "ABSOLUT",
-    image: ""
+    image: "frontend/src/ui/assets/img2/marcas/1119989001093064792.jpg"
   },
   {
     name: "BACARDÍ",
@@ -144,12 +144,7 @@ export const FeaturedProducts = () => {
 
           {/* Flecha izquierda */}
 
-          <button
-            className={styles.brandArrow}
-            type="button"
-          >
-            ‹
-          </button>
+          
 
 
           {/* Lista de marcas */}
@@ -197,12 +192,6 @@ export const FeaturedProducts = () => {
 
           {/* Flecha derecha */}
 
-          <button
-            className={styles.brandArrow}
-            type="button"
-          >
-            ›
-          </button>
 
         </div>
 
