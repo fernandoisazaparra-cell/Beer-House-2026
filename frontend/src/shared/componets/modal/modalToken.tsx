@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from './modal';
 import { FormField } from '@/shared'
 import { FaShieldAlt } from 'react-icons/fa'
@@ -9,6 +9,7 @@ interface VerifyTokenModalProps {
     isOpen: boolean;
     onClose: () => void;
     onVerify: (code: string) => void;
+    onToken: (email: string) => void;
     email: string;
     error?: string;
 }
@@ -17,19 +18,30 @@ export const VerifyTokenModal = ({
     isOpen,
     onClose,
     onVerify,
+    onToken,
     email,
     error
 }: VerifyTokenModalProps) => {
     const [code, setCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isToken, setIsToken] = useState(false)
 
-    const handleSubmit = async (event: React.FormEvent) => {
+    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
         try {
             await onVerify(code);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleToken = async () => {
+        setIsToken(true)
+        try {
+            await onToken(email)
+        } finally {
+            setIsToken(false)
         }
     };
 
@@ -45,7 +57,7 @@ export const VerifyTokenModal = ({
                 <div className={styles.tokenModalIcon}>
                     <FaShieldAlt />
                 </div>
-
+        
                 <form onSubmit={handleSubmit}>
                     <FormField
                         label="Código de verificación"
@@ -66,6 +78,15 @@ export const VerifyTokenModal = ({
                         {isLoading ? 'Verificando...' : 'Verificar código'}
                     </button>
                 </form>
+
+                <button
+                    type='submit'
+                    className={styles.repeatToken}
+                    disabled={isToken}
+                    onClick={handleToken}
+                >
+                    <span>{isToken ? 'Pidiendo un nuevo token...' : 'Pedir un nuevo token'}</span>
+                </button>
             </div>
         </Modal>
     );

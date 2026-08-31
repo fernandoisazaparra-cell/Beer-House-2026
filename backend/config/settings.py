@@ -17,5 +17,8 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    JWT_SECRET = os.getenv("JWT_SECRET", "beer-house-dev-secret-key-change-in-production")
+    JWT_SECRET = os.getenv("JWT_SECRET")
+    if not JWT_SECRET:
+        raise RuntimeError("JWT_SECRET no está definido en las variables de entorno")
+
     JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))

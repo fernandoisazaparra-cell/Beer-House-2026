@@ -1,8 +1,8 @@
 from app.extensions import db
 
-# Este es el modelo de SQLAlchemy: representa la TABLA en la
-# base de datos. Es distinto de `User` (dominio) y de `RegisterUserDTO`
-# (aplicación) — cada capa tiene su propia representación del "usuario".
+
+# Cada clase de aquí representa UNA TABLA en la base de datos.
+# El ORM (SQLAlchemy) se encarga de traducir estas clases a SQL.
 class UserModel(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)

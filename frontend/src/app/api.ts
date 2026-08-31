@@ -4,6 +4,7 @@ export const API_ROUTES = {
     Auth: {
         Registre: '/auth/register',
         Login: '/auth/login',
-        VerifyEmail: '/auth/verify-email'
+        VerifyEmail: '/auth/verify-email',
+        TokenRepeat: '/auth/token-repeat'
     }
 }

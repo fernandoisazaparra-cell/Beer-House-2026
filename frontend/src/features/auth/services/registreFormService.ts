@@ -56,10 +56,7 @@ export const registreUser = async (
     )
     const result = await response.json()
 
-    if (!response.ok) {
-        throw result as ApiErrorResponse
-    }
-
+    if (!response.ok) throw result as ApiErrorResponse
     return result
 }
 
@@ -77,10 +74,7 @@ export const verifyEmail = async (
 
     const result = await response.json()
 
-    if (!response.ok) {
-        throw result as ApiErrorResponse
-    }
-
+    if (!response.ok) throw result as ApiErrorResponse
     return result
 }
 
@@ -98,9 +92,22 @@ export const loginUser = async (
 
     const result = await response.json()
 
-    if (!response.ok) {
-        throw result as ApiErrorResponse
-    }
+    if (!response.ok) throw result as ApiErrorResponse
+    return result
+}
 
+export const RepeatToken = async (email: string) => {
+    const response = await fetch(
+        `${API_URL}${API_ROUTES.Auth.TokenRepeat}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        }
+    )
+
+    const result = await response.json()
+    if (!response.ok) throw result as ApiErrorResponse
+    
     return result
 }

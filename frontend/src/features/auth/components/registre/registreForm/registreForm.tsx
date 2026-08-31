@@ -11,8 +11,7 @@ import {
     FaUser,
     SiGmail,
     FaLock,
-    FaGoogle,
-    FaFacebookF
+    FaGoogle
 } from '@/ui/icons'
 
 import { useRegistreForm } from '@/features/auth/hooks'
@@ -25,7 +24,9 @@ export const RegistreForm = () => {
         setYear,
         isLoading,
         errors,
+
         handleSubmit,
+        handleToken,
 
         showVerify,
         setShowVerify,
@@ -124,11 +125,6 @@ export const RegistreForm = () => {
                         <FaGoogle />
                         Google
                     </button>
-
-                    <button type="button">
-                        <FaFacebookF />
-                        Facebook
-                    </button>
                 </div>
                 
                 <h2 className={styles.contentLogin}>
@@ -144,6 +140,7 @@ export const RegistreForm = () => {
                 }}
                 email={registeredEmail}
                 onVerify={handleVerify}
+                onToken={handleToken}
                 error={verifyError.code?.[0]}
             />
         </>

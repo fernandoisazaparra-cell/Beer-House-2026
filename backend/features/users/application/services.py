@@ -1,74 +1,104 @@
-from ..domain.entities import User, DomainValidationError, EmailVerification
-from ..domain.repositories import UserRepository
-from .dto import RegisterUserDTO, VerifyEmailDTO
+# =====================================================================
+# Lógica de negocio del usuario (registro + verificación por email)
+# ---------------------------------------------------------------------
+# Un "servicio" coordina: validar datos (validators) + hablar con la
+# base de datos (repository). No sabe nada de HTTP ni de Flask.
+# =====================================================================
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from datetime import datetime, timedelta, UTC
-from werkzeug.security import check_password_hash
-
-from app.extensions import db
-
+from ..domain.validators import validar_codigo, validar_usuario
+from ..infrastructure.repository import SQLAlchemyUserRepository, ahora_utc
 
 class UserService:
-    def __init__(self, repository: UserRepository):
-        self.repository = repository
+    def __init__(self):
+        self.repository = SQLAlchemyUserRepository()
 
-    def register(self, data: RegisterUserDTO):
-        user = User(
-            name=data.name,
-            email=data.email,
-            password=data.password,
-            terms=data.terms,
-            years=data.years
+    def register(self, name, email, password, terms, years):
+        """
+        Crea un registro pendiente de verificación.
+        Devuelve (codigo, errores):
+          - codigo: el código de 6 caracteres para enviar por email.
+          - errores: {campo: [mensajes]}. Vacío si todo salió bien.
+        """
+        datos, errores = validar_usuario(name, email, password, terms, years)
+        if errores:
+            return None, errores
+
+        password_hash = generate_password_hash(datos["password"], method="pbkdf2:sha256")
+        email = datos["email"]
+
+        # Si el email ya está en la tabla 'users', no se puede registar de nuevo
+        if self.repository.find_by_email(email):
+            return None, {"email": ["El email ya está registrado"]}
+
+        pendiente = self.repository.find_pending_by_email(email)
+        if pendiente:
+            # Ya había un intento: se regenera el código y se actualizan los datos
+            codigo = self.repository.refresh_pending(
+                pendiente,
+                name=datos["name"],
+                password=password_hash,
+            )
+        else:
+            codigo = self.repository.create_pending(datos["name"], email, password_hash)
+        return codigo, None
+
+    def verify_email(self, email, code):
+        """
+        Comprueba el código y, si es correcto, crea el usuario definitivo.
+        Devuelve errores (dict) o None si todo salió bien.
+        """
+        datos, errores = validar_codigo(email, code)
+        if errores:
+            return errores
+
+        pendiente = self.repository.find_pending_by_email(datos["email"])
+        if not pendiente:
+            raise ValueError("No existe una verificación pendiente")
+
+        now = ahora_utc()
+
+        # ¿Bloqueado por muchos intentos fallidos?
+        if pendiente.locked_until and now < pendiente.locked_until:
+            return {"code": [
+                "Has superado el número máximo de intentos. Intenta nuevamente más tarde."
+            ]}
+
+        # ¿Expiró el código (10 minutos)?
+        if now > pendiente.expires_at:
+            return {"code": ["El código de verificación ha expirado"]}
+
+        # ¿El código es incorrecto?
+        if not check_password_hash(pendiente.code_hash, datos["code"]):
+            self.repository.register_failed_attempt(pendiente)
+            return {"code": ["El código de verificación es incorrecto"]}
+
+        # Todo bien: pasamos el pendiente a usuario definitivo
+        self.repository.delete_pending(pendiente)
+        self.repository.create_user(
+            pendiente.name,
+            pendiente.email,
+            pendiente.password,
         )
+        return None
 
-        if self.repository.find_by_email(user.email):
-            raise DomainValidationError({'email': ['El email ya está registrado']})
+    def re_send_code(self, email):
+        """Reenvía el código de verificación a un email pendiente.
 
-        pending = self.repository.find_pending_by_email(user.email)
-        if pending:
-            return self.repository.update_pending_registration(pending, user)
+        Devuelve (codigo, errores) con el nuevo código generado.
+        """
+        email = (email or "").strip().lower()
+        if not email:
+            return None, {"email": ["El email es obligatorio"]}
 
-        return self.repository.create_pending_registration(user)
+        pendiente = self.repository.find_pending_by_email(email)
+        if not pendiente:
+            raise ValueError("No existe una verificación pendiente")
 
-    def verify_email(self, data: VerifyEmailDTO):
-        now = datetime.now(UTC).replace(tzinfo=None)
-        verification = EmailVerification(
-            email=data.email,
-            code=data.code
-        )
+        codigo = self.repository.refresh_pending(pendiente)
+        return codigo, None
 
-        pending = self.repository.find_pending_by_email(verification.email)
-        if not pending:
-            raise ValueError('No existe una verificación pendiente')
-
-        if pending.locked_until and now < pending.locked_until:
-            raise DomainValidationError({
-                'code': [
-                    'Has superado el número máximo de intentos. '
-                    'Intenta nuevamente más tarde.'
-                ]
-            })
-
-        if now > pending.expires_at:
-            raise DomainValidationError({
-                'code': ['El código de verificación ha expirado']
-            })
-
-        if not check_password_hash(pending.code_hash, data.code):
-            pending.attempts_used += 1
-            if pending.attempts_used >= 5:
-                pending.locked_until = now + timedelta(minutes=15)
-            db.session.commit()
-            raise DomainValidationError({
-                'code': ['El código de verificación es incorrecto']
-            })
-
-        self.repository.delete_pending_registration(pending)
-        user = User(
-            name=pending.name,
-            email=pending.email,
-            password=pending.password,
-            terms=True,
-            years=True
-        )
-        return self.repository.create(user)
+def limpiar_registros_expirados():
+    """Borra registros pendientes con el código expirado. Lo usa el scheduler."""
+    repository = SQLAlchemyUserRepository()
+    return repository.delete_expired_pendings()

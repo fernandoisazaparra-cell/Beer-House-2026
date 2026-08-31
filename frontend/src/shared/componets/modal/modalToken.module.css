@@ -294,7 +294,31 @@
     cursor: not-allowed;
 }
 
+.repeatToken {
+    cursor: pointer;
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-text-tertiary);
+}
 
+.repeatToken span{
+    position: relative;
+}
+
+.repeatToken span::after{
+    position: absolute;
+    content: '';
+    width: 0%;
+    height: 0.1rem;
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-text-tertiary);
+    transition: var(--transition-fast);
+}
+
+.repeatToken:hover span::after{
+    width: 100%;
+}
 /* =========================
    SCROLLBAR
 ========================= */

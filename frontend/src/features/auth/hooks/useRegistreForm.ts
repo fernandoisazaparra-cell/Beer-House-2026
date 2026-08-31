@@ -9,6 +9,7 @@ import {
 import {
     registreUser,
     verifyEmail,
+    RepeatToken,
     type ApiErrorResponse
 } from '../services'
 
@@ -20,6 +21,8 @@ export const useRegistreForm = () => {
     const [years, setYear] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState<Record<string, string[]>>({})
+    const [errorsToken, setErrorsToken] = useState<Record<string, string[]>>({})
+
     const [showVerify, setShowVerify] = useState(false)
     const [registeredEmail, setRegisteredEmail] = useState('')
     const [registeredPassword, setRegisteredPassword] = useState('')
@@ -76,6 +79,23 @@ export const useRegistreForm = () => {
         }
     }
 
+    const handleToken = async (email: string) => {
+        try {
+            setErrorsToken({})
+            await RepeatToken(email)
+        } catch (err) {
+            if (err instanceof Error) {
+                setErrorsToken({
+                    general: [err.message]
+                });
+            } else {
+                setErrorsToken({
+                    general: ['Ocurrió un error inesperado.']
+                });
+            }
+        }
+    }
+
     return {
         terms,
         setTerms,
@@ -86,8 +106,9 @@ export const useRegistreForm = () => {
         isLoading,
 
         errors,
-
+        errorsToken, 
         handleSubmit,
+        handleToken,
 
         showVerify,
         setShowVerify,
