@@ -1,0 +1,20 @@
+.admin-container {
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+.btn-reset-pass {
+  background-color: transparent;
+  color: var(--color-brand);
+  border: 1px solid var(--color-brand);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  transition: var(--transition-fast);
+}
+
+.btn-reset-pass:hover {
+  background-color: var(--color-brand);
+  color: var(--color-bg);
+}

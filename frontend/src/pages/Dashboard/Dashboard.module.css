@@ -1,0 +1,157 @@
+.dashboard {
+  min-height: 100vh;
+  padding: 30px;
+  background: #0f0f0f;
+  color: white;
+}
+
+/* ENCABEZADO */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.header p {
+  margin-top: 8px;
+  color: #999;
+}
+
+/* BOTÓN */
+
+.button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #d4a72c;
+  color: #111;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.button:hover {
+  opacity: 0.85;
+}
+
+/* TARJETAS */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid #292929;
+  border-radius: 12px;
+  background: #181818;
+}
+
+.card p {
+  margin: 0 0 6px;
+  color: #999;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.icon {
+  font-size: 30px;
+}
+
+/* CONTENIDO */
+
+.content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.chart,
+.orders {
+  padding: 25px;
+  border: 1px solid #292929;
+  border-radius: 12px;
+  background: #181818;
+}
+
+.chart h2,
+.orders h2 {
+  margin-top: 0;
+}
+
+/* GRÁFICA */
+
+.chartPlaceholder {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  border-radius: 8px;
+  border: 1px dashed #555;
+  color: #777;
+}
+
+/* PEDIDOS */
+
+.order {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 0;
+  border-bottom: 1px solid #292929;
+}
+
+.order:last-child {
+  border-bottom: none;
+}
+
+.order strong {
+  color: #d4a72c;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

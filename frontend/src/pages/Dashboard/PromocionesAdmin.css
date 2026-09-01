@@ -1,0 +1,5 @@
+.coupon-code {
+  color: var(--color-brand);
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-bold);
+}

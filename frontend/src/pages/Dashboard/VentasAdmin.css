@@ -1,0 +1,12 @@
+.sales-summary-card {
+  background-color: var(--color-surface);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
+}
+
+.sales-total-amount {
+  color: var(--color-success);
+  font-family: var(--font-family-numeric);
+  font-size: var(--font-size-lg);
+}

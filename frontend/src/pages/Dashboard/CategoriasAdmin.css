@@ -1,0 +1,11 @@
+.admin-container {
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}

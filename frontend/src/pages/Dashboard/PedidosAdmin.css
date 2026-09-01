@@ -1,0 +1,98 @@
+.admin-container {
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.admin-header h2 {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-semibold);
+}
+
+.admin-table-container {
+  overflow-x: auto;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table thead tr {
+  border-bottom: 1px solid var(--color-border-primary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-sm);
+}
+
+.admin-table th, 
+.admin-table td {
+  padding: var(--space-3) var(--space-4);
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--color-border-primary);
+  transition: var(--transition-fast);
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.price-text {
+  color: var(--color-brand);
+  font-family: var(--font-family-numeric);
+  font-weight: var(--font-bold);
+}
+
+/* Badges de estado */
+.status-badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-medium);
+}
+
+.status-badge.completado {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.status-badge.pendiente {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.status-badge.cancelado {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+.status-select {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.status-select:hover {
+  border-color: var(--color-border-hover);
+}
