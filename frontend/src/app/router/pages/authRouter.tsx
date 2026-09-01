@@ -1,6 +1,6 @@
 import {
-    RegisterPage
-} from '@/pages/auth/registerPage';
+    AuthPage
+} from '@/pages/auth/authPage';
 
 import {
     Route
@@ -12,6 +12,7 @@ import {
 
 export const AuthRoutesPublic = (
     <>
-        <Route path={API_ROUTES.Auth.Registre} element={<RegisterPage />} />
+        <Route path={API_ROUTES.Auth.Registre} element={<AuthPage />} />
+        <Route path={API_ROUTES.Auth.Login} element={<AuthPage />} />
     </>
 )

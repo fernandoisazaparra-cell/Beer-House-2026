@@ -294,6 +294,18 @@
     cursor: not-allowed;
 }
 
+.generalError {
+    display: block;
+
+    color: #e5484d;
+
+    font-size: 0.85rem;
+
+    text-align: center;
+
+    line-height: 1.4;
+}
+
 .repeatToken {
     cursor: pointer;
     background-color: transparent;

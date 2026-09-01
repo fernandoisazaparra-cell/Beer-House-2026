@@ -1,4 +1,4 @@
-import styles from './registreForm.module.css'
+import styles from '../Form.module.css'
 
 import {
     LineDecoration,
@@ -14,6 +14,10 @@ import {
     FaGoogle
 } from '@/ui/icons'
 
+import {
+    API_ROUTES
+} from '@/app/api'
+
 import { useRegistreForm } from '@/features/auth/hooks'
 
 export const RegistreForm = () => {
@@ -27,6 +31,7 @@ export const RegistreForm = () => {
 
         handleSubmit,
         handleToken,
+        handleGoogleLogin,
 
         showVerify,
         setShowVerify,
@@ -121,14 +126,18 @@ export const RegistreForm = () => {
                 >o regístrate con</LineDecoration>
 
                 <div className={styles.registreExternert}>
-                    <button type="button">
+                    <button
+                        type="button"
+                        className={styles.googleButton}
+                        onClick={() => handleGoogleLogin()}
+                    >
                         <FaGoogle />
-                        Google
+                        <span>Google</span>
                     </button>
                 </div>
                 
                 <h2 className={styles.contentLogin}>
-                    ¿Ya tienes una cuenta? <a href="">Inicia sesión</a>
+                    ¿Ya tienes una cuenta? <a href={API_ROUTES.Auth.Login}>Inicia sesión</a>
                 </h2>
             </div>
 

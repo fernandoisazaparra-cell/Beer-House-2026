@@ -29,6 +29,7 @@ export interface LoginResponse {
         email: string
         rol: string
     }
+    requires_confirmation?: boolean
 }
 
 export interface FieldErrors {
@@ -60,24 +61,6 @@ export const registreUser = async (
     return result
 }
 
-export const verifyEmail = async (
-    data: VerifyEmailData
-) => {
-    const response = await fetch(
-        `${API_URL}${API_ROUTES.Auth.VerifyEmail}`,
-        {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        }
-    )
-
-    const result = await response.json()
-
-    if (!response.ok) throw result as ApiErrorResponse
-    return result
-}
-
 export const loginUser = async (
     data: LoginData
 ): Promise<LoginResponse> => {
@@ -86,6 +69,23 @@ export const loginUser = async (
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }
+    )
+    const result = await response.json()
+
+    if (!response.ok) throw result as ApiErrorResponse
+    return result
+}
+
+export const verifyEmail = async (
+    data: VerifyEmailData
+) => {
+    const response = await fetch(
+        `${API_URL}${API_ROUTES.Auth.VerifyEmail}`,
+        {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         }
     )
@@ -109,5 +109,35 @@ export const RepeatToken = async (email: string) => {
     const result = await response.json()
     if (!response.ok) throw result as ApiErrorResponse
     
+    return result
+}
+
+export const loginGoogle = async (code: string) => {
+    const response = await fetch(
+        `${API_URL}${API_ROUTES.Auth.TokenGoogle}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        }
+    )
+    const result = await response.json()
+    if (!response.ok) throw result as ApiErrorResponse
+    
+    return result    
+}
+
+export const confirmTerms = async (token: string, termsVersion = 'v1.0') => {
+    const response = await fetch(
+        `${API_URL}${API_ROUTES.Auth.ConfirmTerms}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ terms_version: termsVersion })
+        }
+    )
+    const result = await response.json()
+    if (!response.ok) throw result as ApiErrorResponse
+
     return result
 }

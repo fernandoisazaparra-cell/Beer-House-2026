@@ -8,6 +8,8 @@
 #   4) Convertir el resultado en una respuesta JSON.
 # =====================================================================
 from threading import Thread
+import requests
+import os
 
 from flask import Blueprint, request
 from pydantic import ValidationError
@@ -18,10 +20,13 @@ from app.extensions import limiter
 from ..application.services import UserService
 from ..application.services_auth import AuthService
 from .schemas import (
+    ConfirmTermsSchema,
+    GoogleLoginSchema,
     LoginSchema,
     RegisterUserSchema,
     ResendCodeSchema,
     VerifyEmailSchema,
+    GoogleLoginSchema
 )
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -150,6 +155,91 @@ def login():
         return {"message": str(error)}, 400
 
     return resultado, 200
+
+@limiter.limit("10 per minute")
+@auth_bp.post("/token-google")
+def login_google():
+    data = request.get_json(silent=True)
+    if data is None:
+        return {"message": "Body JSON inválido o vacío"}, 400
+
+    try:
+        schema = GoogleLoginSchema(**data)
+    except ValueError as error:
+        return {"message": str(error)}, 400
+
+    # Canjear el authorization code por tokens de Google
+    token_response = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "code": schema.code,
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "redirect_uri": "postmessage",  # clave para flujo popup con useGoogleLogin
+            "grant_type": "authorization_code",
+        },
+    )
+
+    if not token_response.ok:
+        return {"message": "No se pudo validar el código con Google", "detail": token_response.json()}, 400
+
+    tokens = token_response.json()
+    id_token_jwt = tokens.get("id_token")
+
+    # Verificar y decodificar el id_token para sacar los datos del usuario
+    from google.oauth2 import id_token as google_id_token
+    from google.auth.transport import requests as google_requests
+
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            id_token_jwt, google_requests.Request(), os.getenv("GOOGLE_CLIENT_ID")
+        )
+    except ValueError:
+        return {"message": "Token de Google inválido"}, 400
+
+    email = idinfo.get("email")
+    name = idinfo.get("name")
+    google_id = idinfo.get("sub")
+
+    if not email or not google_id:
+        return {"message": "Token de Google incompleto (falta email o sub)"}, 400
+
+    service = AuthService()
+    try:
+        resultado = service.login_google(google_id, email, name)
+    except ValueError as error:
+        return {"message": str(error)}, 400
+
+    return resultado, 200
+
+@auth_bp.post("/confirm-terms")
+@limiter.limit("10 per minute")
+def confirm_terms():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        return {"message": "Token no proporcionado"}, 401
+
+    service = AuthService()
+    try:
+        payload = service.decode_token(token)
+    except ValueError as error:
+        return {"message": str(error)}, 401
+
+    data = request.get_json(silent=True)
+    if data is None:
+        return {"message": "Body JSON inválido o vacío"}, 400
+
+    try:
+        schema = ConfirmTermsSchema(**data)
+    except ValidationError as error:
+        return {"errors": errores_pydantic(error)}, 400
+
+    try:
+        service.confirm_terms_and_age(payload["user_id"], schema.terms_version)
+    except ValueError as error:
+        return {"message": str(error)}, 400
+
+    return {"message": "Términos y edad confirmados correctamente"}, 200
 
 @auth_bp.get("/me")
 @limiter.limit("10 per minute")

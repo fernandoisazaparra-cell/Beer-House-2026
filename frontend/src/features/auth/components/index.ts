@@ -1,3 +1,7 @@
 export {
-    Registre
-} from './registre/registre'
+    RegistreForm
+} from './registreForm/registreForm'
+
+export {
+    LoginForm
+} from './loginForm/loginForm'

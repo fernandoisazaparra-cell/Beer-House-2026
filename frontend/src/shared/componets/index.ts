@@ -32,3 +32,7 @@ export {
 export {
     VerifyTokenModal
 } from './modal/modalToken'
+
+export {
+    TermsConfirmationModal
+} from './modal/termsConfirmation'

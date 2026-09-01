@@ -8,12 +8,11 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-
-    terms_accepted_at = db.Column(db.DateTime, nullable=False)
-    age_confirmed_at = db.Column(db.DateTime, nullable=False)
+    password = db.Column(db.String(255), nullable=True)
+    google_id = db.Column(db.String(255), nullable=True, unique=True)
+    terms_accepted_at = db.Column(db.DateTime, nullable=True)
+    age_confirmed_at = db.Column(db.DateTime, nullable=True)
     terms_version = db.Column(db.String(20), nullable=True)
-
     failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
     locked_until = db.Column(db.DateTime, nullable=True)
     rol = db.Column(db.String(20), nullable=False, default='user')

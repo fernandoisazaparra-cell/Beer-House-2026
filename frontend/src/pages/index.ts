@@ -7,5 +7,5 @@ export {
 } from './layouts/MainLayout'
 
 export {
-    RegisterPage
-} from './auth/registerPage'
+    AuthPage
+} from './auth/authPage'

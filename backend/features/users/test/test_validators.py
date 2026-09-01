@@ -12,6 +12,7 @@ from features.users.domain.validators import (
     validar_usuario,
 )
 
+
 # =========================
 # NAME
 # =========================

@@ -40,6 +40,9 @@ def hashear_codigo(codigo):
 class SQLAlchemyUserRepository:
     """Operaciones de la tabla 'users' y de los registros pendientes."""
     # ---------- Consultas básicas ----------
+    def find_by_id(self, user_id):
+        return UserModel.query.get(user_id)
+
     def find_by_email(self, email):
         return UserModel.query.filter_by(email=email).first()
 
@@ -135,3 +138,36 @@ class SQLAlchemyUserRepository:
         user.failed_login_attempts = 0
         user.locked_until = None
         db.session.commit()
+
+    # ---------- Login con Google ----------
+    def find_by_google_id(self, google_id):
+        return UserModel.query.filter_by(google_id=google_id).first()
+
+    def link_google_account(self, user, google_id):
+        """Vincula una cuenta local existente con su Google ID."""
+        user.google_id = google_id
+        db.session.commit()
+        return user
+
+    def create_google_user(self, name, email, google_id):
+        """Crea un usuario nuevo a partir de un login con Google (sin password)."""
+        model = UserModel(
+            name=name,
+            email=email,
+            password=None,
+            google_id=google_id,
+            terms_accepted_at=None,
+            age_confirmed_at=None,
+        )
+        db.session.add(model)
+        db.session.commit()
+        return model
+
+    def confirm_terms_and_age(self, user, terms_version):
+        """Se llama cuando el usuario de Google confirma edad y términos."""
+        now = ahora_utc()
+        user.terms_accepted_at = now
+        user.age_confirmed_at = now
+        user.terms_version = terms_version
+        db.session.commit()
+        return user

@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from ..domain.validators import validar_codigo, validar_usuario
 from ..infrastructure.repository import SQLAlchemyUserRepository, ahora_utc
 
+
 class UserService:
     def __init__(self):
         self.repository = SQLAlchemyUserRepository()
