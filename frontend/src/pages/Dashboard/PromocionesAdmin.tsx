@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import './PromocionesAdmin.css';
+import { 
+  FaTag 
+} from '@/ui/icons';
 
 interface Promotion {
   id: string;
@@ -110,6 +113,7 @@ export const PromocionesAdmin = () => {
       )}
     </div>
   );
+  <FaTag />
 };
 
 export default PromocionesAdmin;

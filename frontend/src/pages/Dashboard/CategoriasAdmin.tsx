@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import './CategoriasAdmin.css';
+import { 
+  BiCategory 
+} from "@/ui/icons";
 
 export interface Category {
   id: string;
@@ -90,6 +93,7 @@ export const CategoriasAdmin = () => {
       )}
     </div>
   );
+  <BiCategory />
 };
 
 export default CategoriasAdmin;

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import "./PedidosAdmin.css";
+import {
+   BsBorderStyle
+   } from '@/ui/icons';
 
 interface Order {
   id: string;
@@ -72,6 +75,7 @@ export const PedidosAdmin = () => {
       </div>
     </div>
   );
+  <BsBorderStyle />
 };
 
 export default PedidosAdmin;

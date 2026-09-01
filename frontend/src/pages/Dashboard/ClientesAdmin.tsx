@@ -1,62 +1,83 @@
-// ==========================================
-// 1. TIPOS E INTERFACES
-// ==========================================
-interface Client {
+import React, { useState } from 'react';
+import './ProductosAdmin.css'; // Reutiliza el mismo CSS para mantener estilos unificados
+import {
+   RiCustomerService2Fill 
+  } from "react-icons/ri";
+export interface Client {
   id: string;
   name: string;
   email: string;
-  phone: string;
-  totalOrders: number;
+  password?: string;
 }
 
 const initialClients: Client[] = [
-  { id: 'CLI-01', name: 'Carlos Pérez', email: 'carlos@gmail.com', phone: '+57 300 123 4567', totalOrders: 5 },
-  { id: 'CLI-02', name: 'Enana', email: 'enana@gmail.com', phone: '+57 310 987 6543', totalOrders: 12 },
+  { id: 'CLI-01', name: 'Carlos Pérez', email: 'carlos@gmail.com' },
+  { id: 'CLI-02', name: 'Enana', email: 'enana@gmail.com' },
 ];
 
-// ==========================================
-// 2. COMPONENTE PRINCIPAL
-// ==========================================
 export const ClientesAdmin = () => {
-  const handleResetPassword = (email: string) => {
-    // Aquí conectarías con tu backend para enviar un correo de recuperación
-    alert(`Se ha enviado un enlace para restablecer la contraseña a ${email}`);
+  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newClient, setNewClient] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewClient({ ...newClient, [e.target.name]: e.target.value });
+  };
+
+  const handleAddClient = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClient.name || !newClient.email || !newClient.password) return;
+
+    const createdClient: Client = {
+      id: `CLI-0${clients.length + 1}`,
+      name: newClient.name,
+      email: newClient.email,
+    };
+
+    setClients([...clients, createdClient]);
+    setNewClient({ name: '', email: '', password: '' });
+    setIsModalOpen(false);
+  };
+
+  const handleResetPassword = (id: string) => {
+    alert(`Enlace de restablecimiento enviado para el cliente ${id}`);
   };
 
   return (
-    <div style={{ color: '#fff', width: '100%' }}>
-      <h2>Gestión de Clientes</h2>
-      <div style={{ background: '#181818', borderRadius: '8px', padding: '16px', marginTop: '20px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+    <div className="admin-container">
+      <div className="admin-header">
+        <h2>Gestión de Clientes</h2>
+        <button onClick={() => setIsModalOpen(true)} className="btn-primary">
+          + Agregar cliente
+        </button>
+      </div>
+
+      <div className="admin-table-container">
+        <table className="admin-table">
           <thead>
-            <tr style={{ borderBottom: '1px solid #333', color: '#aaa' }}>
-              <th style={{ padding: '12px' }}>ID</th>
-              <th style={{ padding: '12px' }}>Nombre</th>
-              <th style={{ padding: '12px' }}>Correo</th>
-              <th style={{ padding: '12px' }}>Contraseña</th>
-              <th style={{ padding: '12px' }}>Acciones</th>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Contraseña</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {initialClients.map((cli) => (
-              <tr key={cli.id} style={{ borderBottom: '1px solid #282828' }}>
-                <td style={{ padding: '12px', fontWeight: 'bold' }}>{cli.id}</td>
-                <td style={{ padding: '12px' }}>{cli.name}</td>
-                <td style={{ padding: '12px', color: '#d4af37' }}>{cli.email}</td>
-                {/* Ocultamos la contraseña por seguridad */}
-                <td style={{ padding: '12px', color: '#888' }}>••••••••</td>
-                <td style={{ padding: '12px' }}>
+            {clients.map((client) => (
+              <tr key={client.id}>
+                <td style={{ fontWeight: 'bold' }}>{client.id}</td>
+                <td>{client.name}</td>
+                <td style={{ color: 'var(--color-brand)' }}>{client.email}</td>
+                <td>••••••••</td>
+                <td>
                   <button
-                    onClick={() => handleResetPassword(cli.email)}
-                    style={{
-                      background: '#222',
-                      color: '#d4af37',
-                      border: '1px solid #d4af37',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
+                    onClick={() => handleResetPassword(client.id)}
+                    className="btn-secondary"
                   >
                     Restablecer Clave
                   </button>
@@ -66,8 +87,67 @@ export const ClientesAdmin = () => {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="modal-title">Agregar Nuevo Cliente</h3>
+            <form onSubmit={handleAddClient} className="form-group">
+              <div className="form-field">
+                <label>Nombre Completo</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newClient.name}
+                  onChange={handleInputChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Correo Electrónico</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newClient.email}
+                  onChange={handleInputChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Contraseña Inicial</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={newClient.password}
+                  onChange={handleInputChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-primary">
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
+  <RiCustomerService2Fill />
 };
 
 export default ClientesAdmin;

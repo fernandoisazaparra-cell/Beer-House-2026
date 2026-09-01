@@ -2,7 +2,9 @@
 // 1. IMPORTACIONES Y TIPOS
 // ==========================================
 import { useState } from 'react';
-
+import { 
+  MdOutlineInventory 
+} from "@/ui/icons";
 interface StockItem {
   id: string;
   name: string;
@@ -88,6 +90,7 @@ export const InventarioAdmin = () => {
       </div>
     </div>
   );
+  <MdOutlineInventory />
 };
 
 export default InventarioAdmin;

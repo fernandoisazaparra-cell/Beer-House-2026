@@ -1,5 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import styles from './Dashboard.module.css';
+import {
+   MdDashboard 
+} from '@/ui/icons';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -101,6 +104,7 @@ const Dashboard = () => {
 
     </div>
   );
+  <MdDashboard />
 };
 
 export default Dashboard;
