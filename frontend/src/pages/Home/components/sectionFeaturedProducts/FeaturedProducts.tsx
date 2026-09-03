@@ -1,26 +1,12 @@
 // ======================================================
-// IMPORTACIÓN DE ESTILOS
+// IMPORTACIONES
 // ======================================================
-
-import styles from './FeaturedProducts.module.css'
-
+import styles from './FeaturedProducts.module.css';
+import { useCart } from '@/app/context/cartUse';
 
 // ======================================================
 // MARCAS PREMIUM
 // ======================================================
-// Aquí estarán las marcas de la sección superior.
-//
-// IMPORTANTE:
-// "image: ''" significa que todavía no hemos colocado
-// la imagen. Después tú podrás poner tu propia imagen.
-//
-// Ejemplo:
-//
-// image: jackDaniels
-//
-// cuando tengas importada la imagen.
-// ======================================================
-
 const brands = [
   {
     name: "JACK DANIEL'S",
@@ -50,20 +36,14 @@ const brands = [
     name: "BACARDÍ",
     image: ""
   }
-]
-
+];
 
 // ======================================================
 // PRODUCTOS DESTACADOS
 // ======================================================
-// Aquí estarán los productos.
-//
-// "image: ''" es el espacio donde después colocaremos
-// tus imágenes reales.
-// ======================================================
-
 const products = [
   {
+    id: "1",
     name: "Reserva Ámbar 12 Años",
     type: "Whisky",
     image: "./src/ui/assets/ing/Products/2603712280137549-removebg-preview.png",
@@ -72,29 +52,29 @@ const products = [
     rating: "★★★★★",
     reviews: "(245)"
   },
-
   {
-    name: "Reserva Ámbar 12 Años",
-    type: "Whisky",
+    id: "2",
+    name: "Aguardiente Antioqueño Rojo",
+    type: "Aguardiente",
     image: "./src/ui/assets/ing/Products/AGUARDIENTE AGUARDIENTE ROJO ANTIOQUEÑO 750ML.jpg",
     price: "$385.000",
     oldPrice: "$450.000",
     rating: "★★★★★",
     reviews: "(245)"
   },
-
   {
-    name: "Reserva Ámbar 12 Años",
-    type: "Whisky",
+    id: "3",
+    name: "Don Julio Reposado",
+    type: "Tequila",
     image: "./src/ui/assets/ing/Products/Don_Julio_Reposado-removebg-preview.png",
     price: "$385.000",
     oldPrice: "$450.000",
     rating: "★★★★★",
     reviews: "(245)"
   },
-
   {
-    name: "Reserva Ámbar 12 Años",
+    id: "4",
+    name: "Buchanan's 12 Años",
     type: "Whisky",
     image: "./src/ui/assets/ing/Products/Buchanan_s_12_Years_Aged-removebg-preview.png",
     price: "$385.000",
@@ -102,149 +82,68 @@ const products = [
     rating: "★★★★★",
     reviews: "(245)"
   }
-]
-
+];
 
 // ======================================================
 // COMPONENTE PRINCIPAL
 // ======================================================
-
 export const FeaturedProducts = () => {
+  const { addToCart } = useCart();
 
   return (
-
     <section className={styles.featuredSection}>
-
-      {/* ==================================================
-          MARCAS PREMIUM
-          ================================================== */}
-
+      {/* MARCAS PREMIUM */}
       <div className={styles.brandsContainer}>
-
-        {/* TÍTULO */}
-
         <div className={styles.sectionTitle}>
-
           <span></span>
-
-          <h3>
-            MARCAS PREMIUM
-          </h3>
-
+          <h3>MARCAS PREMIUM</h3>
           <span></span>
-
         </div>
 
-
-        {/* ==================================================
-            SLIDER DE MARCAS
-            ================================================== */}
-
+        {/* SLIDER DE MARCAS */}
         <div className={styles.brandsSlider}>
-
-          {/* Flecha izquierda */}
-
-          
-
-
-          {/* Lista de marcas */}
-
           <div className={styles.brands}>
-
             {brands.map((brand) => (
-
-              <div
-                className={styles.brand}
-                key={brand.name}
-              >
-
-                {/* ==========================================
-                    IMAGEN DE LA MARCA
-                    ========================================== */}
-
+              <div className={styles.brand} key={brand.name}>
                 {brand.image ? (
-
                   <img
                     src={brand.image}
                     alt={brand.name}
                     className={styles.brandImage}
                   />
-
                 ) : (
-
-                  /*
-                    ESTE ESPACIO APARECE MIENTRAS
-                    NO TENGAS LA IMAGEN.
-                  */
-
                   <div className={styles.brandPlaceholder}>
                     LOGO
                   </div>
-
                 )}
-
               </div>
-
             ))}
-
           </div>
-
-
-          {/* Flecha derecha */}
-
-
         </div>
-
       </div>
 
-
-      {/* ==================================================
-          PRODUCTOS DESTACADOS
-          ================================================== */}
-
+      {/* PRODUCTOS DESTACADOS */}
       <div className={styles.productsContainer}>
-
-        {/* Texto pequeño */}
-
         <div className={styles.homeLabel}>
           SECCIÓN DE LA CASA
         </div>
-
-
-        {/* Título principal */}
 
         <h2 className={styles.productsTitle}>
           PRODUCTOS DESTACADOS
         </h2>
 
-
-        {/* ==================================================
-            GRID DE PRODUCTOS
-            ================================================== */}
-
+        {/* GRID DE PRODUCTOS */}
         <div className={styles.productsGrid}>
-
-          {products.map((product, index) => (
-
+          {products.map((product) => (
             <article
               className={styles.productCard}
-              key={`${product.name}-${index}`}
+              key={product.id}
             >
-
-              {/* ==================================================
-                  IMAGEN DEL PRODUCTO
-                  ================================================== */}
-
+              {/* IMAGEN DEL PRODUCTO */}
               <div className={styles.productImage}>
-
-                {/* Etiqueta */}
-
                 <span className={styles.featuredBadge}>
                   DESTACADO
                 </span>
-
-
-                {/* Favoritos */}
 
                 <button
                   className={styles.favorite}
@@ -254,125 +153,64 @@ export const FeaturedProducts = () => {
                   ♡
                 </button>
 
-
-                {/* ==============================================
-                    IMAGEN DEL PRODUCTO
-                    ============================================== */}
-
                 {product.image ? (
-
                   <img
                     src={product.image}
                     alt={product.name}
                     className={styles.productImageFile}
                   />
-
                 ) : (
-
-                  /*
-                    ESTE ES EL ESPACIO VACÍO PARA TU IMAGEN.
-                  */
-                 
-                  
-                  <div className={styles.productImagePlaceholder}>
-                  </div>
-
+                  <div className={styles.productImagePlaceholder}></div>
                 )}
-
               </div>
 
-
-              {/* ==================================================
-                  INFORMACIÓN DEL PRODUCTO
-                  ================================================== */}
-
+              {/* INFORMACIÓN DEL PRODUCTO */}
               <div className={styles.productInfo}>
-
-                {/* Nombre */}
-
-                <h3>
-                  {product.name}
-                </h3>
-
-
-                {/* Tipo */}
+                <h3>{product.name}</h3>
 
                 <p className={styles.productType}>
                   12 años • {product.type}
                 </p>
 
-
-                {/* Calificación */}
-
                 <div className={styles.rating}>
-
-                  <span>
-                    {product.rating}
-                  </span>
-
-                  <small>
-                    {product.reviews}
-                  </small>
-
+                  <span>{product.rating}</span>
+                  <small>{product.reviews}</small>
                 </div>
 
-
-                {/* ==================================================
-                    PRECIOS
-                    ================================================== */}
-
+                {/* PRECIOS */}
                 <div className={styles.priceContainer}>
-
-                  {/* Precio anterior */}
-
                   <span className={styles.oldPrice}>
                     {product.oldPrice}
                   </span>
-
-
-                  {/* Precio actual */}
-
                   <strong className={styles.price}>
                     {product.price}
                   </strong>
-
-
-                  {/* Stock */}
-
                   <span className={styles.stock}>
                     En stock
                   </span>
-
                 </div>
 
-
-                {/* ==================================================
-                    BOTÓN CARRITO
-                    ================================================== */}
-
+                {/* BOTÓN CARRITO */}
                 <button
                   className={styles.cartButton}
                   type="button"
+                  onClick={() =>
+                    addToCart({
+                      id: String(product.id),
+                      name: product.name,
+                      price: Number(String(product.price).replace(/[^0-9]/g, '')) || 0,
+                      imageUrl: product.image,
+                    })
+                  }
                 >
-
-                  <span>
-                    🛒
-                  </span>
-
+                  <span>🛒</span>
                   AGREGAR AL CARRITO
-
                 </button>
-
               </div>
-
             </article>
-
           ))}
-
         </div>
-
       </div>
-
     </section>
-  )
-}
+  );
+};

@@ -1,4 +1,17 @@
 import { render } from '@testing-library/react'
+import { CartProvider } from '@/app/context/CartProvider';
+import { AppRoutes } from '@/app/router/Router';
+
+export const App = () => {
+  return (
+    <CartProvider>
+      <AppRoutes />
+    </CartProvider>
+  );
+};
+<CartProvider>
+  <App />
+</CartProvider>
 
 import { App } from './App'
 

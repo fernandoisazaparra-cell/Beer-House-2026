@@ -7,3 +7,4 @@ import '@/ui/styles/main.css'
 export const App = () => {
     return <AppRoutes />
 }
+

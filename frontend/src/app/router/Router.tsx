@@ -1,5 +1,5 @@
 import { Route, Routes, BrowserRouter } from 'react-router-dom';
-import { Home, ProductsPage, MainLayout } from '@/pages';
+import { Home, ProductsPage, MainLayout, CarritoPage } from '@/pages';
 
 import Dashboard from '@/pages/Dashboard/Dashboard';
 import PedidosAdmin from '@/pages/Dashboard/PedidosAdmin';
@@ -19,6 +19,7 @@ export const AppRoutes = () => {
                     {/* Rutas Públicas */}
                     <Route index element={<Home />} />
                     <Route path="productos" element={<ProductsPage />} />
+                    <Route path="carrito" element={<CarritoPage />} />
 
                     {/* Dashboard y Subrutas */}
                     <Route path="dashboard" element={<Dashboard />}>

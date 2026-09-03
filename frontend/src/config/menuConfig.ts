@@ -8,20 +8,22 @@ import {
     BsBorderStyle,
     FcSalesPerformance,
     FaTag,
-    MdDashboard 
+    MdDashboard,
+    FaShoppingCart, 
 } from '@/ui/icons'
 
 // Importa los iconos adicionales si los tienes en @/ui/icons, o mapea los existentes
 import type { MenuSection } from './menuConfig.types'
 
 export const menuConfig: MenuSection[] = [
-    {
-        title: "menu inicio",
-        items: [
-            { path: '/', icon: IoIosHome, label: 'Inicio', rol: ['user', 'admin', 'guest'] },
-            { path: '/productos', icon: FaWineBottle, label: 'Productos', rol: ['user', 'admin', 'guest'] },
-        ]
-    },
+  {
+    title: "menu inicio",
+    items: [
+      { path: '/', icon: IoIosHome, label: 'Inicio', rol: ['user', 'admin', 'guest'] },
+      { path: '/productos', icon: FaWineBottle, label: 'Productos', rol: ['user', 'admin', 'guest'] },
+      { path: '/carrito', icon: FaShoppingCart, label: 'Carrito', rol: ['user', 'admin', 'guest'] }
+    ]
+  },
     {
         title: "administración",
         items: [

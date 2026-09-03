@@ -7,3 +7,5 @@ export {
 } from './layouts/MainLayout'
 
 export { ProductsPage } from './Products'
+
+export { default as CarritoPage } from './Carrito/CarritoPage';
