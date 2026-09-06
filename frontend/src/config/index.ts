@@ -1,2 +1,11 @@
-export { menuConfig } from './menuConfig'
-export type { MenuSection, NavItemType } from './menuConfig.types'
+export { 
+    menuConfig,
+    type MenuSection, 
+    type NavItemType,
+    type userRol
+} from './menuConfig'
+
+export {
+    defaultCategories,
+    type Category
+} from './defaultCategories'

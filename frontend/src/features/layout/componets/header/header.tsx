@@ -1,4 +1,5 @@
 import styles from './header.module.css'
+import { useNavigate } from 'react-router-dom';
 
 import { 
     IoIosNotifications,
@@ -27,8 +28,13 @@ import {
     useAuth
 } from '@/app/context'
 
+import {
+    API_ROUTES
+} from '@/app/api'
+
 export const Header = () => {
-    const { token, login } = useAuth()
+    const { token } = useAuth()
+    const navigate = useNavigate();
 
     // States
     const { isClose, toggleClose } = useLayout()
@@ -80,7 +86,7 @@ export const Header = () => {
                     ): !isCompact ? (
                         <div className={styles.contentLogin}>
                             <button 
-                                onClick={login}
+                                onClick={() => navigate(API_ROUTES.Auth.Registre)}
                                 className={styles.login}
                             >
                                 <h2>Iniciar seccion</h2>

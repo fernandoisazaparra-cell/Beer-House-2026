@@ -41,10 +41,14 @@ npm run backend:start
 
 ## `backend:test`
 ```bash
-npm run backend:test
+npm run backend:test                                                  # corre todos los tests
+npm run backend:test -- features/users/test/test_entities.py          # un archivo específico
+npm run backend:test -- features/users/test                           # una carpeta específica
+npm run backend:test -- -v                                            # con salida detallada
 ```
-**Qué hace:** corre `pytest` sobre el proyecto.
-**Cuándo usarlo:** antes de un PR, o en CI.
+**Qué hace:** ejecuta los tests del backend con `pytest`. Por defecto corre todo lo encontrado en `backend/`; opcionalmente aceptá una carpeta, archivo o argumento de `pytest` después de `--`.
+**Cuándo usarlo:** para verificar que las reglas y funcionalidades del backend funcionan bien, antes de un PR, cambios importantes o en CI.
+**Notas:** requiere `backend/venv/` y `pytest` instalado en el entorno virtual. Sin dirección, corre todos los tests. Los argumentos después de `--` se pasan directo a `pytest`.
 
 ---
 

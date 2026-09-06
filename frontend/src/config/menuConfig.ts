@@ -12,8 +12,22 @@ import {
     FaShoppingCart, 
 } from '@/ui/icons'
 
-// Importa los iconos adicionales si los tienes en @/ui/icons, o mapea los existentes
-import type { MenuSection } from './menuConfig.types'
+export type userRol = 'user' | 'admin' | 'guest'
+
+export interface NavItemType {
+    path?: string;
+    icon?: React.ElementType;
+    action?: () => void;
+    children?: NavItemType[];
+        
+    label: string;
+    rol: string[];
+}
+
+export interface MenuSection {
+    title?: string;
+    items: NavItemType[];
+}
 
 export const menuConfig: MenuSection[] = [
   {

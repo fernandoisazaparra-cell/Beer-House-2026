@@ -1,57 +1,84 @@
 import { useState } from "react"
-import type { userRol } from '@/config/menuConfig.types'
-
-import { useNavigate } from "react-router-dom";
-
-import UserBeta from '@/ui/assets/UserTest.webp'
+import { type userRol } from '@/config'
+import { useNavigate } from "react-router-dom"
+import { loginUser, type LoginResponse, confirmTerms } from '@/features/auth/services'
 
 export interface user {
-    id: number;
-    name: string;
-    email: string;
-    rol: userRol;
-    img: string
+    id: number
+    name: string
+    email: string
+    rol: string
 }
 
+const STORAGE_KEY_TOKEN = 'bh_token'
+const STORAGE_KEY_USER = 'bh_user'
+
 export const useAuthState = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
-    // States
-    const [isAuth, setIsAuth] = useState(false)
-    const [token, setToken] = useState<string | null>(
-        "Jejeje soy falso >:D"
-    );
-    const [user, setUser] = useState<user | null>({
-        id: 1,
-        name: "Enana",
-        email: "Enana@gmail.com",
-        rol: "admin",
-        img: UserBeta
-    });
+    const [isAuth, setIsAuth] = useState(() => {
+        return !!localStorage.getItem(STORAGE_KEY_TOKEN)
+    })
 
-    const currentRole = user?.rol ?? "guest"
+    const [token, setToken] = useState<string | null>(() => {
+        return localStorage.getItem(STORAGE_KEY_TOKEN)
+    })
 
-    // Toggles
-    const ToggleAuth = () => setIsAuth((prev) => !prev)
+    const [user, setUser] = useState<user | null>(() => {
+        const stored = localStorage.getItem(STORAGE_KEY_USER)
+        return stored ? JSON.parse(stored) : null
+    })
+
+    const currentRole: userRol = (user?.rol ?? "guest") as userRol
+
+    const [needsTermsConfirmation, setNeedsTermsConfirmation] = useState(false)
+
     const SetAuth = () => setIsAuth(true)
     const NotAuth = () => setIsAuth(false)
 
-    // Actions
-    const logout = async () => {
-        setUser(null)
-        setToken(null)
+    const login = async (email: string, password: string) => {
+        const result: LoginResponse = await loginUser({ email, password })
+
+        localStorage.setItem(STORAGE_KEY_TOKEN, result.token)
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(result.user))
+
+        setToken(result.token)
+        setUser(result.user)
+        setIsAuth(true)
         navigate("/")
     }
 
-    const login = async () => {
-        setUser({
-            id: 1,
-            name: "Enana",
-            email: "Enana@gmail.com",
-            rol: "admin",
-            img: UserBeta
-        })
-        setToken("Jejeje soy falso >:D")
+    const loginWithGoogle = (result: LoginResponse) => {
+        localStorage.setItem(STORAGE_KEY_TOKEN, result.token)
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(result.user))
+
+        setToken(result.token)
+        setUser(result.user)
+        setIsAuth(true)
+
+        if (result.requires_confirmation) {
+            setNeedsTermsConfirmation(true)
+        } else {
+            navigate("/")
+        }
+    }
+
+    const confirmGoogleTerms = async (termsVersion = 'v1.0') => {
+        const currentToken = token || localStorage.getItem(STORAGE_KEY_TOKEN)
+        if (!currentToken) throw new Error("Token no disponible")
+
+        await confirmTerms(currentToken, termsVersion)
+        setNeedsTermsConfirmation(false)
+        navigate("/")
+    }
+
+    const logout = () => {
+        localStorage.removeItem(STORAGE_KEY_TOKEN)
+        localStorage.removeItem(STORAGE_KEY_USER)
+        setToken(null)
+        setUser(null)
+        setIsAuth(false)
+        setNeedsTermsConfirmation(false)
         navigate("/")
     }
 
@@ -59,7 +86,6 @@ export const useAuthState = () => {
         isAuth,
         SetAuth,
         NotAuth,
-        ToggleAuth,
 
         token,
         setToken,
@@ -68,6 +94,9 @@ export const useAuthState = () => {
         currentRole,
         setUser,
         logout,
-        login
+        login,
+        loginWithGoogle,
+        needsTermsConfirmation,
+        confirmGoogleTerms
     }
 }

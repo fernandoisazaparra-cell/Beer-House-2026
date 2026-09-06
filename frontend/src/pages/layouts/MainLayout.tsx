@@ -15,10 +15,6 @@ import {
 } from '@/features/layout/context'
 
 import {
-    AuthProvider
-} from '@/app/context'
-
-import {
     useMediaQuery,
     BreakPoints
 } from '@/app/hooks'
@@ -44,11 +40,9 @@ export const MainLayout = () => {
     return (
         <div className={styles.layout}>
             <LayoutProvider>
-                <AuthProvider>
-                    <Aside />
-                    <Header />
-                    <MobileOverlay />
-                </AuthProvider>
+                <Aside />
+                <Header />
+                <MobileOverlay />
             </LayoutProvider>
 
             <main className={styles.main}>

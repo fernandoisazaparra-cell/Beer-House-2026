@@ -1,11 +1,17 @@
 export { 
     Home 
-} from './Home/home'
+} from './home/home'
 
 export {
     MainLayout
 } from './layouts/MainLayout'
 
-export { ProductsPage } from './Products'
+export {
+    AuthPage
+} from './auth/authPage'
 
-export { default as CarritoPage } from './Carrito/CarritoPage';
+export { 
+    ProductsPage 
+} from './Products'
+
+export { default as CarritoPage } from './carrito/CarritoPage';
