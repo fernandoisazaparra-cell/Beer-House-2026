@@ -2,8 +2,10 @@
    PÁGINA DE PRODUCTOS
 ========================================================== */
 .productsPage {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    min-height: 100vh;
+    min-height: auto;
     background: #080808;
     color: #ffffff;
     font-family: Georgia, 'Times New Roman', serif;

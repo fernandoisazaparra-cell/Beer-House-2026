@@ -1,6 +1,6 @@
 import { 
     Products 
-} from '@/features/productos'
+} from '@/features/productos/productos'
 
 export const ProductsPage = () => {
     return <Products />

@@ -1,4 +1,4 @@
-import { Products } from '@/features/productos'
+import { Products } from '@/features/productos/productos'
 
 export const ProductsPage = () => {
     return <Products />

@@ -1,9 +1,7 @@
 import {
   HomeLabel,
   CategoryGrid,
-  FeaturedProducts,
-  Products,
-  Footer
+  FeaturedProducts
 } from '@/features'
 
 import {
@@ -19,12 +17,6 @@ export const Home = () => {
 
        {/* Marcas Premium + Productos Destacados */}
       <FeaturedProducts />
-
-       <Products/>
-
-         {/* FOOTER */}
-      <Footer />
-    
     </>
   );
 };

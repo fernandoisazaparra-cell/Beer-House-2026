@@ -36,3 +36,7 @@ export {
 export {
     TermsConfirmationModal
 } from './modal/termsConfirmation'
+
+export {
+    ProductCard
+} from './productCard/ProductCard'
