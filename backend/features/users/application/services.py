@@ -61,9 +61,9 @@ class UserService:
 
         # ¿Bloqueado por muchos intentos fallidos?
         if pendiente.locked_until and now < pendiente.locked_until:
-            return {"code": [
-                "Has superado el número máximo de intentos. Intenta nuevamente más tarde."
-            ]}
+            return {
+                "code": ["Has superado el número máximo de intentos. Intenta nuevamente más tarde."]
+            }
 
         # ¿Expiró el código (10 minutos)?
         if now > pendiente.expires_at:
@@ -98,6 +98,7 @@ class UserService:
 
         codigo = self.repository.refresh_pending(pendiente)
         return codigo, None
+
 
 def limpiar_registros_expirados():
     """Borra registros pendientes con el código expirado. Lo usa el scheduler."""

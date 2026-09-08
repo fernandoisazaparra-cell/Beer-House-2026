@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader
 class EmailError(Exception):
     """Error relacionado con el envío de correos."""
 
+
 class EmailService:
     def __init__(self):
         self.server = os.getenv("MAIL_SERVER")
@@ -17,7 +18,7 @@ class EmailService:
         self.username = os.getenv("MAIL_USERNAME")
         self.password = os.getenv("MAIL_PASSWORD")
         self.sender = os.getenv("MAIL_FROM")
-        self.template_dir = (Path(__file__).resolve().parent / "templates")
+        self.template_dir = Path(__file__).resolve().parent / "templates"
         self.template_env = Environment(loader=FileSystemLoader(self.template_dir))
 
     def send_email(self, recipient, subject, template_name, context=None):
@@ -31,7 +32,7 @@ class EmailService:
             message["To"] = recipient
             message["Subject"] = subject
 
-            message.attach(MIMEText(html,"html","utf-8"))
+            message.attach(MIMEText(html, "html", "utf-8"))
 
             with smtplib.SMTP(self.server, self.port) as smtp:
                 smtp.starttls()

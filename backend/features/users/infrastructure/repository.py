@@ -15,30 +15,31 @@ from .models import PendingRegistration, UserModel
 
 # Caracteres para el código de verificación
 # (se omiten las letras ambiguas: I, L, O, 0, 1)
-CARACTERES_CODIGO = (
-    "ABCDEFGHJKLMNPQRSTUVWXYZ"
-    "abcdefghijkmnopqrstuvwxyz"
-    "23456789"
-)
+CARACTERES_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
 
 # Un código de verificación dura 10 minutos
 TIEMPO_EXPIRACION = timedelta(minutes=10)
+
 
 def ahora_utc():
     """Fecha y hora actual en UTC. MySQL guarda 'sin zona horaria',
     por eso quitamos el offset para poder comparar con lo que se lee de la BD."""
     return datetime.now(UTC).replace(tzinfo=None)
 
+
 def generar_codigo():
     """Genera un código de verificación de 6 caracteres aleatorios."""
     return "".join(secrets.choice(CARACTERES_CODIGO) for _ in range(6))
+
 
 def hashear_codigo(codigo):
     """Convierte el código en un hash para no guardarlo en texto plano."""
     return generate_password_hash(codigo, method="pbkdf2:sha256")
 
+
 class SQLAlchemyUserRepository:
     """Operaciones de la tabla 'users' y de los registros pendientes."""
+
     # ---------- Consultas básicas ----------
     def find_by_id(self, user_id):
         return UserModel.query.get(user_id)
@@ -50,6 +51,9 @@ class SQLAlchemyUserRepository:
         return PendingRegistration.query.filter_by(email=email).first()
 
     # ---------- Usuarios definitivos ----------
+    def get_all(self):
+        return UserModel.query.order_by(UserModel.id.asc()).all()
+
     def create_user(self, name, email, password):
         """Crea el usuario final (ya verificó su email)."""
         now = ahora_utc()
@@ -60,10 +64,21 @@ class SQLAlchemyUserRepository:
             terms_accepted_at=now,
             age_confirmed_at=now,
             terms_version="v1.0",
+            created_at=now,
         )
         db.session.add(model)
         db.session.commit()
         return model
+
+    def update_rol(self, user, rol):
+        """Cambia el rol de un usuario ('user' o 'admin')."""
+        user.rol = rol
+        db.session.commit()
+        return user
+
+    def delete(self, user):
+        db.session.delete(user)
+        db.session.commit()
 
     # ---------- Registros pendientes de verificación ----------
     def create_pending(self, name, email, password):
@@ -158,6 +173,7 @@ class SQLAlchemyUserRepository:
             google_id=google_id,
             terms_accepted_at=None,
             age_confirmed_at=None,
+            created_at=ahora_utc(),
         )
         db.session.add(model)
         db.session.commit()

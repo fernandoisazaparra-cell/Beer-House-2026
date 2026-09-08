@@ -15,7 +15,9 @@ class UserModel(db.Model):
     terms_version = db.Column(db.String(20), nullable=True)
     failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
     locked_until = db.Column(db.DateTime, nullable=True)
-    rol = db.Column(db.String(20), nullable=False, default='user')
+    rol = db.Column(db.String(20), nullable=False, default="user")
+    created_at = db.Column(db.DateTime, nullable=True)
+
 
 class PendingRegistration(db.Model):
     __tablename__ = "pending_registrations"

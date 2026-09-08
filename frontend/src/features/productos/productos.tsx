@@ -2,8 +2,10 @@
 // PRODUCTS
 // Página / sección de catálogo de productos
 // ======================================================
+import { useEffect, useState } from 'react'
 import styles from './Products.module.css'
-import { productos } from './productos.types'
+import type { Producto } from './productos.types'
+import { obtenerProductos } from './services/productosService'
 import { ProductsHeader } from './componets/ProductsHeader'
 
 import { FiltrosSidebar } from './componets/FiltrosSidebar'
@@ -16,6 +18,22 @@ import { ProductsGrid } from './componets/ProductsGrid'
 // COMPONENTE PRODUCTS
 // ======================================================
 export const Products = () => {
+    const [productos, setProductos] = useState<Producto[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const cargar = async () => {
+            try {
+                setLoading(true)
+                setProductos(await obtenerProductos())
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        void cargar()
+    }, [])
+
     return (
         <main className={styles.productsPage}>
             <ProductsHeader />
@@ -26,8 +44,12 @@ export const Products = () => {
                 <section className={styles.productsArea}>
                     <SearchOrder />
                     <ActiveFilters />
-                    <ProductsInfo total={120} mostrando={productos.length} />
-                    <ProductsGrid productos={productos} />
+                    <ProductsInfo total={productos.length} mostrando={productos.length} />
+                    {loading ? (
+                        <p>Cargando productos...</p>
+                    ) : (
+                        <ProductsGrid productos={productos} />
+                    )}
                 </section>
             </section>
         </main>

@@ -49,7 +49,6 @@ export const menuConfig: MenuSection[] = [
             { path: '/dashboard/pedidos', icon: BsBorderStyle, label: 'Pedidos', rol: ['admin'] },
             { path: '/dashboard/ventas', icon: FcSalesPerformance , label: 'Ventas', rol: ['admin'] },
             { path: '/dashboard/promociones', icon: FaTag , label: 'Promociones', rol: ['admin'] },
-            { path: '/dashboard/configuracion', icon: MdDashboard , label: 'Configuración', rol: ['admin'] },
         ]
     }
 ]

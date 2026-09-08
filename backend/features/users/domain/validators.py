@@ -13,8 +13,15 @@ import re
 
 # Contraseñas tan comunes que no se permiten (en minúsculas para comparar fácil)
 CONTRASEÑAS_COMUNES = {
-    "password1", "password123", "12345678", "123456789",
-    "admin123", "welcome1", "contraseña", "qwerty123", "secret123",
+    "password1",
+    "password123",
+    "12345678",
+    "123456789",
+    "admin123",
+    "welcome1",
+    "contraseña",
+    "qwerty123",
+    "secret123",
 }
 
 # Secuencias numéricas demasiado obvias (1234, 4321, 1111...)
@@ -28,6 +35,7 @@ PATRONES_SECUENCIA = [
 # La "ñ" y las tildes están permitidas.
 PATRON_NOMBRE = re.compile(r"[A-Za-zÁÉÍÓÚáéíóúÑñÜü '-]+")
 
+
 def normalizar_nombre(nombre):
     """Convierte '   joSé   delos MUÑoz   ' en 'José Delos Muñoz'."""
     return " ".join(
@@ -37,6 +45,7 @@ def normalizar_nombre(nombre):
         )
         for parte in nombre.strip().split()
     )
+
 
 def validar_usuario(name, email, password, terms, years):
     """Valida y normaliza los datos de un registro.
@@ -82,7 +91,9 @@ def validar_usuario(name, email, password, terms, years):
     if name.startswith("-") or name.endswith("-"):
         errores.setdefault("name", []).append("El nombre no puede comenzar ni terminar con guion")
     if name.startswith("'") or name.endswith("'"):
-        errores.setdefault("name", []).append("El nombre no puede comenzar ni terminar con apóstrofe")
+        errores.setdefault("name", []).append(
+            "El nombre no puede comenzar ni terminar con apóstrofe"
+        )
     if "--" in name:
         errores.setdefault("name", []).append("El nombre no puede contener guiones consecutivos")
     if "''" in name:
@@ -110,13 +121,21 @@ def validar_usuario(name, email, password, terms, years):
     if not any(caracter.isdigit() for caracter in password):
         errores.setdefault("password", []).append("La contraseña debe tener al menos un dígito")
     if password_minus in CONTRASEÑAS_COMUNES:
-        errores.setdefault("password", []).append("Esta contraseña es demasiado común y no es segura")
+        errores.setdefault("password", []).append(
+            "Esta contraseña es demasiado común y no es segura"
+        )
     if es_secuencia_obvia:
-        errores.setdefault("password", []).append("La contraseña contiene secuencias numéricas muy obvias")
+        errores.setdefault("password", []).append(
+            "La contraseña contiene secuencias numéricas muy obvias"
+        )
     if re.search(r"(.)\1{3,}", password):
-        errores.setdefault("password", []).append("La contraseña no puede contener caracteres repetidos consecutivamente")
+        errores.setdefault("password", []).append(
+            "La contraseña no puede contener caracteres repetidos consecutivamente"
+        )
     if password_minus == email_minus:
-        errores.setdefault("password", []).append("La contraseña no puede ser igual al correo electrónico")
+        errores.setdefault("password", []).append(
+            "La contraseña no puede ser igual al correo electrónico"
+        )
 
     # --- Términos y mayoría de edad ---
     if not terms:
@@ -133,6 +152,7 @@ def validar_usuario(name, email, password, terms, years):
         "years": years,
     }
     return datos, errores
+
 
 def validar_codigo(email, code):
     """Valida los datos para verificar un código por email.

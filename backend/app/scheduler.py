@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler()
 
+
 def start_scheduler(app):
     def tarea_limpieza():
         # El import va aquí para evitar imports circulares

@@ -7,10 +7,10 @@
 #   3) Llamar al servicio, que valida reglas y habla con la BD.
 #   4) Convertir el resultado en una respuesta JSON.
 # =====================================================================
-from threading import Thread
-import requests
 import os
+from threading import Thread
 
+import requests
 from flask import Blueprint, request
 from pydantic import ValidationError
 
@@ -26,10 +26,10 @@ from .schemas import (
     RegisterUserSchema,
     ResendCodeSchema,
     VerifyEmailSchema,
-    GoogleLoginSchema
 )
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
 
 def errores_pydantic(validation_error):
     """Convierte los errores de Pydantic en {campo: [mensajes]}."""
@@ -43,6 +43,7 @@ def errores_pydantic(validation_error):
         errores.setdefault(campo, []).append(mensaje)
     return errores
 
+
 def enviar_codigo_por_email(destinatario, codigo, nombre=None):
     """Envía el correo con el código. Si falla, solo lo imprime (no rompe el registro)."""
     try:
@@ -55,6 +56,7 @@ def enviar_codigo_por_email(destinatario, codigo, nombre=None):
     except EmailError as error:
         print(f"Error enviando correo: {error}")
 
+
 def enviar_codigo_en_background(destinatario, codigo, nombre=None):
     """Envía el correo en un hilo aparte para no hacer esperar al usuario."""
     Thread(
@@ -62,6 +64,7 @@ def enviar_codigo_en_background(destinatario, codigo, nombre=None):
         args=(destinatario, codigo, nombre),
         daemon=True,
     ).start()
+
 
 @auth_bp.post("/register")
 @limiter.limit("10 per minute")
@@ -89,6 +92,7 @@ def register():
     enviar_codigo_en_background(schema.email, codigo, schema.name)
     return {"message": "Usuario registrado correctamente"}, 201
 
+
 @auth_bp.post("/verify-email")
 @limiter.limit("10 per minute")
 def verify_email():
@@ -111,6 +115,7 @@ def verify_email():
         return {"errors": errores}, 400
 
     return {"message": "Correo verificado correctamente"}, 200
+
 
 @auth_bp.post("/token-repeat")
 @limiter.limit("5 per hour")
@@ -136,6 +141,7 @@ def token_repeat():
     enviar_codigo_en_background(schema.email, codigo)
     return {"message": "Código reenviado. Revisa tu correo."}, 200
 
+
 @auth_bp.post("/login")
 @limiter.limit("10 per minute")
 def login():
@@ -155,6 +161,7 @@ def login():
         return {"message": str(error)}, 400
 
     return resultado, 200
+
 
 @limiter.limit("10 per minute")
 @auth_bp.post("/token-google")
@@ -181,14 +188,17 @@ def login_google():
     )
 
     if not token_response.ok:
-        return {"message": "No se pudo validar el código con Google", "detail": token_response.json()}, 400
+        return {
+            "message": "No se pudo validar el código con Google",
+            "detail": token_response.json(),
+        }, 400
 
     tokens = token_response.json()
     id_token_jwt = tokens.get("id_token")
 
     # Verificar y decodificar el id_token para sacar los datos del usuario
-    from google.oauth2 import id_token as google_id_token
     from google.auth.transport import requests as google_requests
+    from google.oauth2 import id_token as google_id_token
 
     try:
         idinfo = google_id_token.verify_oauth2_token(
@@ -211,6 +221,7 @@ def login_google():
         return {"message": str(error)}, 400
 
     return resultado, 200
+
 
 @auth_bp.post("/confirm-terms")
 @limiter.limit("10 per minute")
@@ -240,6 +251,7 @@ def confirm_terms():
         return {"message": str(error)}, 400
 
     return {"message": "Términos y edad confirmados correctamente"}, 200
+
 
 @auth_bp.get("/me")
 @limiter.limit("10 per minute")

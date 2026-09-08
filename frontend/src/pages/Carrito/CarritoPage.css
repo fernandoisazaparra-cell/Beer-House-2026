@@ -59,3 +59,106 @@
   gap: var(--space-2);
   margin-top: var(--space-4);
 }
+
+/* ---------- Checkout ---------- */
+.checkout-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.checkout-modal {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  width: min(420px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.checkout-total {
+  margin: 0;
+}
+
+.checkout-total strong {
+  color: var(--color-brand);
+  font-family: var(--font-family-numeric);
+}
+
+.checkout-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.checkout-field label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.checkout-input {
+  width: 100%;
+  padding: var(--space-2);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+}
+
+.checkout-error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin: var(--space-2) 0;
+}
+
+.checkout-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.checkout-btn-primary,
+.checkout-btn-secondary {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-primary);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: var(--font-size-md);
+}
+
+.checkout-btn-primary {
+  background-color: var(--color-brand);
+  color: var(--color-bg);
+  border: none;
+}
+
+.checkout-btn-primary:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.checkout-btn-secondary {
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.checkout-btn-secondary:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.checkout-btn-primary:disabled,
+.checkout-btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,97 +1,154 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import './AdminShared.css';
 import './VentasAdmin.css';
 import { 
   FcSalesPerformance 
 } from '@/ui/icons';
+import {
+  getOrders,
+  getOrderDetail,
+  createOrder,
+  type Order
+} from '@/features/dashboard/services/ordersService';
+import {
+  getProductsAdmin,
+  type Product
+} from '@/features/dashboard/services/productsService';
+import {
+  getErrorMessage
+} from '@/features/dashboard/services/errorsService';
+import {
+  formatCurrency,
+  formatDate
+} from '@/features/dashboard/services/dashboardStatsService';
 
-export interface SaleItem {
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-export interface Sale {
-  id: string;
-  date: string;
+interface NewSaleForm {
   client: string;
+  email: string;
   paymentMethod: string;
-  amount: number;
-  items: SaleItem[];
+  productId: string;
+  quantity: string;
+  unitPrice: string;
 }
-
-const initialSales: Sale[] = [
-  {
-    id: 'VTA-101',
-    date: '2026-08-28',
-    client: 'Carlos Pérez',
-    paymentMethod: 'Tarjeta de Crédito',
-    amount: 85000,
-    items: [{ productName: 'Cerveza IPA', quantity: 5, unitPrice: 17000 }],
-  },
-  {
-    id: 'VTA-102',
-    date: '2026-08-29',
-    client: 'Enana',
-    paymentMethod: 'Nequi / Transferencia',
-    amount: 120000,
-    items: [
-      { productName: 'Whisky 12 Años', quantity: 1, unitPrice: 90000 },
-      { productName: 'Cerveza Stout', quantity: 2, unitPrice: 15000 },
-    ],
-  },
-];
 
 export const VentasAdmin = () => {
-  const [sales, setSales] = useState<Sale[]>(initialSales);
-  const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
-  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [sales, setSales] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Estado formulario venta
-  const [newSale, setNewSale] = useState({
+  const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<Order | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [newSale, setNewSale] = useState<NewSaleForm>({
     client: '',
+    email: '',
     paymentMethod: 'Efectivo',
-    productName: '',
-    quantity: 1,
+    productId: '',
+    quantity: '1',
     unitPrice: '',
   });
 
-  const totalIncome = sales.reduce((acc, sale) => acc + sale.amount, 0);
+  const totalIncome = sales.reduce((acc, sale) => acc + sale.total, 0);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [ordersData, productsData] = await Promise.all([
+          getOrders(),
+          getProductsAdmin(),
+        ]);
+        setError('');
+        setSales(ordersData);
+        setProducts(productsData);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadData();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setNewSale({ ...newSale, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setNewSale((prev) => {
+      const next = { ...prev, [name]: value };
+
+      if (name === 'productId') {
+        const product = products.find((p) => p.id === Number(value));
+        if (product) {
+          next.unitPrice = String(product.price);
+        }
+      }
+      return next;
+    });
   };
 
-  const handleAddSale = (e: React.FormEvent) => {
+  const selectedProduct = products.find((p) => p.id === Number(newSale.productId));
+
+  const handleAddSale = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSale.client || !newSale.productName || !newSale.unitPrice) return;
 
-    const computedAmount = Number(newSale.quantity) * Number(newSale.unitPrice);
-    const createdSale: Sale = {
-      id: `VTA-10${sales.length + 1}`,
-      date: new Date().toISOString().split('T')[0],
-      client: newSale.client,
-      paymentMethod: newSale.paymentMethod,
-      amount: computedAmount,
-      items: [
-        {
-          productName: newSale.productName,
-          quantity: Number(newSale.quantity),
-          unitPrice: Number(newSale.unitPrice),
-        },
-      ],
-    };
+    const product = selectedProduct;
+    const quantity = Number(newSale.quantity);
+    const unitPrice = Number(newSale.unitPrice);
 
-    setSales([createdSale, ...sales]);
-    setNewSale({
-      client: '',
-      paymentMethod: 'Efectivo',
-      productName: '',
-      quantity: 1,
-      unitPrice: '',
-    });
-    setIsNewSaleOpen(false);
+    if (!newSale.client.trim() || !product || !quantity || unitPrice < 0) {
+      alert('Completa el cliente, el producto, la cantidad y el precio unitario.');
+      return;
+    }
+    if (product.stock < quantity) {
+      alert(`Stock insuficiente para "${product.name}" (disponible: ${product.stock}).`);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const created = await createOrder({
+        client_name: newSale.client.trim(),
+        client_email: newSale.email.trim() || null,
+        payment_method: newSale.paymentMethod,
+        status: 'completado',
+        items: [
+          {
+            product_id: product.id,
+            product_name: product.name,
+            quantity,
+            unit_price: unitPrice,
+          },
+        ],
+      });
+      setSales((prev) => [created, ...prev]);
+
+      setNewSale({
+        client: '',
+        email: '',
+        paymentMethod: 'Efectivo',
+        productId: '',
+        quantity: '1',
+        unitPrice: '',
+      });
+      setIsNewSaleOpen(false);
+    } catch (err) {
+      alert(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleOpenDetail = async (sale: Order) => {
+    setSelectedSale(sale);
+    try {
+      const detail = await getOrderDetail(sale.id);
+      setSelectedSale(detail);
+    } catch (err) {
+      alert(getErrorMessage(err));
+    }
   };
 
   return (
@@ -104,7 +161,7 @@ export const VentasAdmin = () => {
           <div className="sales-summary-card">
             <span className="summary-label">Total Ingresos:</span>
             <span className="sales-total-amount">
-              ${totalIncome.toLocaleString()}
+              {formatCurrency(totalIncome)}
             </span>
           </div>
           <button
@@ -116,38 +173,46 @@ export const VentasAdmin = () => {
         </div>
       </div>
 
+      {error && <p className="admin-error">{error}</p>}
+
       <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Recibo</th>
-              <th>Fecha</th>
-              <th>Cliente</th>
-              <th>Método de Pago</th>
-              <th>Monto</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sales.map((sale) => (
-              <tr key={sale.id}>
-                <td style={{ fontWeight: 'bold' }}>{sale.id}</td>
-                <td>{sale.date}</td>
-                <td>{sale.client}</td>
-                <td>{sale.paymentMethod}</td>
-                <td className="price-text">${sale.amount.toLocaleString()}</td>
-                <td>
-                  <button
-                    onClick={() => setSelectedSale(sale)}
-                    className="btn-secondary"
-                  >
-                    Ver Detalle
-                  </button>
-                </td>
+        {loading ? (
+          <p className="admin-loading">Cargando ventas...</p>
+        ) : sales.length === 0 ? (
+          <p className="admin-empty">No hay ventas registradas.</p>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Recibo</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Método de Pago</th>
+                <th>Monto</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {sales.map((sale) => (
+                <tr key={sale.id}>
+                  <td style={{ fontWeight: 'bold' }}>{sale.code}</td>
+                  <td>{formatDate(sale.created_at)}</td>
+                  <td>{sale.client_name}</td>
+                  <td>{sale.payment_method || '—'}</td>
+                  <td className="price-text">{formatCurrency(sale.total)}</td>
+                  <td>
+                    <button
+                      onClick={() => handleOpenDetail(sale)}
+                      className="btn-secondary"
+                    >
+                      Ver Detalle
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Modal Nueva Venta */}
@@ -169,6 +234,17 @@ export const VentasAdmin = () => {
               </div>
 
               <div className="form-field">
+                <label>Correo (opcional)</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newSale.email}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-field">
                 <label>Método de Pago</label>
                 <select
                   name="paymentMethod"
@@ -185,15 +261,25 @@ export const VentasAdmin = () => {
 
               <div className="form-field">
                 <label>Producto</label>
-                <input
-                  type="text"
-                  name="productName"
-                  value={newSale.productName}
+                <select
+                  name="productId"
+                  value={newSale.productId}
                   onChange={handleInputChange}
                   required
                   className="form-input"
-                />
+                >
+                  <option value="">Selecciona un producto</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} — {formatCurrency(product.price)} (stock: {product.stock})
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              {selectedProduct && selectedProduct.stock === 0 && (
+                <p className="admin-error">Este producto está agotado.</p>
+              )}
 
               <div className="form-row">
                 <div className="form-field">
@@ -202,6 +288,7 @@ export const VentasAdmin = () => {
                     type="number"
                     name="quantity"
                     min="1"
+                    max={selectedProduct?.stock ?? 1}
                     value={newSale.quantity}
                     onChange={handleInputChange}
                     required
@@ -213,7 +300,8 @@ export const VentasAdmin = () => {
                   <input
                     type="number"
                     name="unitPrice"
-                    min="1"
+                    min="0"
+                    step="0.01"
                     value={newSale.unitPrice}
                     onChange={handleInputChange}
                     required
@@ -230,8 +318,8 @@ export const VentasAdmin = () => {
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
-                  Guardar Venta
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? 'Guardando...' : 'Guardar Venta'}
                 </button>
               </div>
             </form>
@@ -243,11 +331,11 @@ export const VentasAdmin = () => {
       {selectedSale && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3 className="modal-title">Detalle Recibo: {selectedSale.id}</h3>
+            <h3 className="modal-title">Detalle Recibo: {selectedSale.code}</h3>
             <div className="sale-detail-info">
-              <p><strong>Cliente:</strong> {selectedSale.client}</p>
-              <p><strong>Fecha:</strong> {selectedSale.date}</p>
-              <p><strong>Método de Pago:</strong> {selectedSale.paymentMethod}</p>
+              <p><strong>Cliente:</strong> {selectedSale.client_name}</p>
+              <p><strong>Fecha:</strong> {formatDate(selectedSale.created_at)}</p>
+              <p><strong>Método de Pago:</strong> {selectedSale.payment_method || '—'}</p>
             </div>
 
             <table className="admin-table detail-table">
@@ -259,18 +347,18 @@ export const VentasAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {selectedSale.items.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{item.productName}</td>
+                {selectedSale.items?.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.product_name}</td>
                     <td>{item.quantity}</td>
-                    <td>${(item.quantity * item.unitPrice).toLocaleString()}</td>
+                    <td>{formatCurrency(item.quantity * item.unit_price)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             <div className="sale-detail-total">
-              Total: <span>${selectedSale.amount.toLocaleString()}</span>
+              Total: <span>{formatCurrency(selectedSale.total)}</span>
             </div>
 
             <div className="modal-actions">

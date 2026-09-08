@@ -1,45 +1,100 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import './AdminShared.css';
 import './PromocionesAdmin.css';
 import { 
   FaTag 
 } from '@/ui/icons';
+import {
+  getPromotions,
+  createPromotion,
+  togglePromotion,
+  deletePromotion,
+  type Promotion
+} from '@/features/dashboard/services/promotionsService';
+import {
+  getErrorMessage
+} from '@/features/dashboard/services/errorsService';
+import {
+  formatDate
+} from '@/features/dashboard/services/dashboardStatsService';
 
-interface Promotion {
-  id: string;
+interface PromotionForm {
   code: string;
-  discountPercent: number;
-  active: boolean;
+  discountPercent: string;
+  expiresAt: string;
 }
 
-const initialPromos: Promotion[] = [
-  { id: 'PRM-01', code: 'BEERHAPPY', discountPercent: 15, active: true },
-];
+const emptyForm: PromotionForm = { code: '', discountPercent: '', expiresAt: '' };
 
 export const PromocionesAdmin = () => {
-  const [promos, setPromos] = useState<Promotion[]>(initialPromos);
+  const [promos, setPromos] = useState<Promotion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPromo, setNewPromo] = useState({ code: '', discountPercent: '' });
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<PromotionForm>(emptyForm);
 
-  const handleToggle = (id: string) => {
-    setPromos(prev =>
-      prev.map(p => (p.id === id ? { ...p, active: !p.active } : p))
-    );
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await getPromotions();
+        setError('');
+        setPromos(data);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadData();
+  }, []);
+
+  const handleToggle = async (promo: Promotion) => {
+    try {
+      const updated = await togglePromotion(promo.id);
+      setPromos((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    } catch (err) {
+      alert(getErrorMessage(err));
+    }
   };
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleDelete = async (promo: Promotion) => {
+    if (!window.confirm(`¿Eliminar el cupón "${promo.code}"?`)) return;
+
+    try {
+      await deletePromotion(promo.id);
+      setPromos((prev) => prev.filter((p) => p.id !== promo.id));
+    } catch (err) {
+      alert(getErrorMessage(err));
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPromo.code || !newPromo.discountPercent) return;
-    setPromos([
-      ...promos,
-      {
-        id: `PRM-0${promos.length + 1}`,
-        code: newPromo.code.toUpperCase(),
-        discountPercent: Number(newPromo.discountPercent),
+
+    const discount = Number(formData.discountPercent);
+    if (!formData.code.trim() || !discount || discount < 0 || discount > 100) {
+      alert('Ingresa un código y un descuento entre 0 y 100.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const created = await createPromotion({
+        code: formData.code.trim(),
+        discount_percent: discount,
         active: true,
-      },
-    ]);
-    setNewPromo({ code: '', discountPercent: '' });
-    setIsModalOpen(false);
+        expires_at: formData.expiresAt || null,
+      });
+      setPromos((prev) => [...prev, created]);
+      setFormData(emptyForm);
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -51,35 +106,50 @@ export const PromocionesAdmin = () => {
         </button>
       </div>
 
+      {error && <p className="admin-error">{error}</p>}
+
       <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Código Cupón</th>
-              <th>Descuento (%)</th>
-              <th>Estado</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {promos.map((p) => (
-              <tr key={p.id}>
-                <td className="coupon-code">{p.code}</td>
-                <td>{p.discountPercent}% OFF</td>
-                <td>
-                  <span className={`status-badge ${p.active ? 'completado' : 'cancelado'}`}>
-                    {p.active ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>
-                  <button onClick={() => handleToggle(p.id)} className="btn-secondary">
-                    {p.active ? 'Desactivar' : 'Activar'}
-                  </button>
-                </td>
+        {loading ? (
+          <p className="admin-loading">Cargando promociones...</p>
+        ) : promos.length === 0 ? (
+          <p className="admin-empty">No hay promociones registradas.</p>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Código Cupón</th>
+                <th>Descuento (%)</th>
+                <th>Expira</th>
+                <th>Estado</th>
+                <th>Acción</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {promos.map((p) => (
+                <tr key={p.id}>
+                  <td className="coupon-code">{p.code}</td>
+                  <td>{p.discount_percent}% OFF</td>
+                  <td style={{ color: '#aaa' }}>{formatDate(p.expires_at)}</td>
+                  <td>
+                    <span className={`status-badge ${p.active ? 'completado' : 'cancelado'}`}>
+                      {p.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleToggle(p)} className="btn-secondary">
+                        {p.active ? 'Desactivar' : 'Activar'}
+                      </button>
+                      <button onClick={() => handleDelete(p)} className="btn-danger">
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {isModalOpen && (
@@ -87,25 +157,44 @@ export const PromocionesAdmin = () => {
           <div className="modal-content">
             <h3 className="modal-title">Nuevo Cupón</h3>
             <form onSubmit={handleAdd} className="form-group">
-              <input
-                type="text"
-                placeholder="Código (Ej: DESCUENTO10)"
-                value={newPromo.code}
-                onChange={(e) => setNewPromo({ ...newPromo, code: e.target.value })}
-                required
-                className="form-input"
-              />
-              <input
-                type="number"
-                placeholder="Porcentaje (%)"
-                value={newPromo.discountPercent}
-                onChange={(e) => setNewPromo({ ...newPromo, discountPercent: e.target.value })}
-                required
-                className="form-input"
-              />
+              <div className="form-field">
+                <label>Código</label>
+                <input
+                  type="text"
+                  placeholder="Código (Ej: DESCUENTO10)"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  required
+                  className="form-input"
+                />
+              </div>
+              <div className="form-field">
+                <label>Porcentaje de descuento (%)</label>
+                <input
+                  type="number"
+                  placeholder="Porcentaje (%)"
+                  min="0"
+                  max="100"
+                  value={formData.discountPercent}
+                  onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                  required
+                  className="form-input"
+                />
+              </div>
+              <div className="form-field">
+                <label>Fecha de expiración (opcional)</label>
+                <input
+                  type="date"
+                  value={formData.expiresAt}
+                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  className="form-input"
+                />
+              </div>
               <div className="modal-actions">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar</button>
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </form>
           </div>

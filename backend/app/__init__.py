@@ -13,9 +13,14 @@ from app.extensions import db, limiter, migrate
 from app.health import health_bp
 from app.scheduler import start_scheduler
 from config.settings import Config
+from features.categories.presentation.routes import categories_bp
+from features.orders.presentation.routes import orders_bp
+from features.products.presentation.routes import products_bp
+from features.promotions.presentation.routes import promotions_bp
 
 # Importar los blueprints (rutas) que viven dentro de cada feature
 from features.users.presentation.routes import auth_bp
+from features.users.presentation.routes_admin import admin_bp
 
 
 def create_app():
@@ -33,11 +38,20 @@ def create_app():
 
     # Importar los modelos para que SQLAlchemy/Alembic conozcan las tablas
     # (si los modelos no se importan, las migraciones no los detectan)
+    import features.categories.infrastructure.models  # noqa: F401
+    import features.orders.infrastructure.models  # noqa: F401
+    import features.products.infrastructure.models  # noqa: F401
+    import features.promotions.infrastructure.models  # noqa: F401
     import features.users.infrastructure.models  # noqa: F401
 
     # Rutas
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(categories_bp)
+    app.register_blueprint(products_bp)
+    app.register_blueprint(orders_bp)
+    app.register_blueprint(promotions_bp)
 
     # Tarea programada: limpiar registros expirados cada 15 minutos
     if os.getenv("RUN_SCHEDULER", "true").lower() == "true":
@@ -46,9 +60,11 @@ def create_app():
     # Respuesta cuando Flask-Limiter bloquea una petición (código 429)
     @app.errorhandler(429)
     def ratelimit_handler(error):
-        return jsonify({
-            "error": "too_many_requests",
-            "message": "Demasiados intentos. Inténtalo nuevamente más tarde.",
-        }), 429
+        return jsonify(
+            {
+                "error": "too_many_requests",
+                "message": "Demasiados intentos. Inténtalo nuevamente más tarde.",
+            }
+        ), 429
 
     return app

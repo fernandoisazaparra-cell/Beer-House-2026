@@ -1,7 +1,7 @@
 import {
     AuthRoutesPublic
 } from './'
-import { Route, Routes, BrowserRouter } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { Home, ProductsPage, MainLayout, CarritoPage } from '@/pages';
 
 import Dashboard from '@/pages/dashboard/Dashboard';
@@ -12,6 +12,7 @@ import InventarioAdmin from '@/pages/dashboard/InventarioAdmin';
 import ClientesAdmin from '@/pages/dashboard/ClientesAdmin';
 import VentasAdmin from '@/pages/dashboard/VentasAdmin';
 import PromocionesAdmin from '@/pages/dashboard/PromocionesAdmin';
+import { RequireAdmin } from './RequireAdmin';
 
 export const AppRoutes = () => {
     return (
@@ -34,7 +35,7 @@ export const AppRoutes = () => {
                 <Route path="carrito" element={<CarritoPage />} />
 
                 {/* Dashboard y Subrutas */}
-                <Route path="dashboard" element={<Dashboard />}>
+                <Route path="dashboard" element={<RequireAdmin><Dashboard /></RequireAdmin>}>
                     <Route path="pedidos" element={<PedidosAdmin />} />
                     <Route path="productos" element={<ProductosAdmin />} />
                     <Route path="categorias" element={<CategoriasAdmin />} />
