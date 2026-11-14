@@ -55,6 +55,43 @@ def get_foreign_key_name(table_name, column_name):
     return None
 
 
+def ensure_products_table():
+    if not table_exists('products'):
+        op.create_table(
+            'products',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('name', sa.String(length=150), nullable=False),
+            sa.Column('liquor_type', sa.String(length=50), nullable=False),
+            sa.Column('price', sa.Numeric(10, 2), nullable=False),
+            sa.Column(
+                'stock',
+                sa.Integer(),
+                nullable=False,
+                server_default='0'
+            ),
+            sa.Column(
+                'min_stock',
+                sa.Integer(),
+                nullable=False,
+                server_default='5'
+            ),
+            sa.Column('image_url', sa.Text(), nullable=True),
+            sa.Column('description', sa.Text(), nullable=True),
+            sa.Column(
+                'legal_warning',
+                sa.String(length=255),
+                nullable=False,
+                server_default='Prohibida la venta de bebidas embriagantes a menores de edad.'
+            ),
+            sa.Column(
+                'is_active',
+                sa.Boolean(),
+                nullable=False,
+                server_default=sa.true()
+            ),
+            sa.PrimaryKeyConstraint('id')
+        )
+
 def ensure_catalog_access_logs():
     if not table_exists('catalog_access_logs'):
         op.create_table(
@@ -98,7 +135,10 @@ def ensure_catalog_access_logs():
 
 def upgrade():
 
-    # 1. Catalog access logs
+    # 1. products
+    ensure_products_table()
+
+      # 2. Catalog access logs
     ensure_catalog_access_logs()
 
     # 2. Inventory movements
