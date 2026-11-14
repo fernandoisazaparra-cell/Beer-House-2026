@@ -2,13 +2,12 @@ from datetime import datetime
 from app.extensions import db
 from features.products.infrastructure.models import ProductModel
 from features.suppliers.infrastructure.models import SupplierModel
-
-# Importación de todos los modelos de la característica de inventario (incluyendo LossRecordModel)
 from features.inventory.infrastructure.models import (
     InventoryMovementModel,
     PhysicalCountModel,
-    LossRecordModel
+    LossRecordModel,
 )
+
 
 class InventoryService:
 
@@ -29,7 +28,9 @@ class InventoryService:
         if quantity <= 0:
             raise ValueError("La cantidad ingresada debe ser mayor a 0.")
 
+        previous_stock = product.stock
         product.stock += quantity
+        new_stock = product.stock
 
         movement = InventoryMovementModel(
             product_id=product.id,
@@ -37,8 +38,10 @@ class InventoryService:
             user_id=user_id,
             movement_type="ENTRY",
             quantity=quantity,
+            previous_stock=previous_stock,
+            new_stock=new_stock,
             invoice_number=invoice_number,
-            reason=data.get("reason", "Entrada por compra")
+            reason=data.get("reason", "Entrada por compra"),
         )
         db.session.add(movement)
         db.session.commit()
@@ -46,7 +49,7 @@ class InventoryService:
 
     def register_adjustment(self, data, user_id=1):
         reason = data.get("reason")
-        if not reason or len(reason.strip()) < 5:
+        if not reason or not reason.strip():
             raise ValueError("RN-025: Debe proporcionar un motivo válido para el ajuste de inventario.")
 
         product = ProductModel.query.get(data["product_id"])
@@ -54,7 +57,11 @@ class InventoryService:
             raise ValueError("El producto especificado no existe.")
 
         quantity = int(data["quantity"])
+        if quantity <= 0:
+            raise ValueError("La cantidad del ajuste debe ser mayor a 0.")
+
         movement_type = data.get("movement_type", "ADJUSTMENT_OUT")
+        previous_stock = product.stock
 
         if movement_type == "ADJUSTMENT_OUT":
             if product.stock < quantity:
@@ -62,13 +69,19 @@ class InventoryService:
             product.stock -= quantity
         elif movement_type == "ADJUSTMENT_IN":
             product.stock += quantity
+        else:
+            raise ValueError("Tipo de ajuste no válido.")
+
+        new_stock = product.stock
 
         movement = InventoryMovementModel(
             product_id=product.id,
             user_id=user_id,
             movement_type=movement_type,
             quantity=quantity,
-            reason=reason
+            previous_stock=previous_stock,
+            new_stock=new_stock,
+            reason=reason.strip(),
         )
         db.session.add(movement)
         db.session.commit()
@@ -114,7 +127,7 @@ class InventoryService:
             difference_percentage=diff_percentage,
             signed_act_url=signed_act_url,
             user_id=user_id,
-            count_date=datetime.utcnow()
+            count_date=datetime.utcnow(),
         )
 
         db.session.add(count_record)
@@ -136,22 +149,27 @@ class InventoryService:
         difference = count_record.physical_stock - count_record.system_stock
 
         if difference != 0:
+            previous_stock = product.stock
             movement_type = "ENTRY" if difference > 0 else "ADJUSTMENT_OUT"
+            product.stock = count_record.physical_stock
+            new_stock = product.stock
+
             movement = InventoryMovementModel(
                 product_id=product.id,
                 user_id=count_record.user_id or user_id,
                 quantity=abs(difference),
+                previous_stock=previous_stock,
+                new_stock=new_stock,
                 movement_type=movement_type,
-                reason=f"Ajuste por Conteo Físico #{count_record.id}. Soporte: {count_record.signed_act_url or 'N/A'}"
+                reason=f"Ajuste por Conteo Físico #{count_record.id}. Soporte: {count_record.signed_act_url or 'N/A'}",
             )
 
-            product.stock = count_record.physical_stock
             db.session.add(movement)
             db.session.commit()
 
         return {
             "count": count_record.to_dict(),
-            "updated_stock": product.stock
+            "updated_stock": product.stock,
         }
 
     def get_physical_counts_history(self):
@@ -164,7 +182,7 @@ class InventoryService:
     def get_stock_alerts(self):
         products = ProductModel.query.filter(
             ProductModel.is_active == True,
-            ProductModel.stock <= ProductModel.min_stock
+            ProductModel.stock <= ProductModel.min_stock,
         ).all()
 
         alerts = []
@@ -186,7 +204,7 @@ class InventoryService:
                 "suggested_quantity": suggested_quantity,
                 "supplier_id": supplier.id if supplier else None,
                 "supplier_name": supplier.name if supplier else "Sin Proveedor Asignado",
-                "unit_cost": float(getattr(p, "cost", 0.0))
+                "unit_cost": float(getattr(p, "cost", 0.0)),
             })
 
         return alerts
@@ -196,10 +214,10 @@ class InventoryService:
             raise ValueError("Debe seleccionar al menos un producto para generar la sugerencia de compra.")
 
         products = ProductModel.query.filter(ProductModel.id.in_(product_ids)).all()
-        
+
         grouped_by_supplier = {}
         for p in products:
-            supplier_id = getattr(p, 'supplier_id', None) or 0
+            supplier_id = getattr(p, "supplier_id", None) or 0
             supplier = SupplierModel.query.get(supplier_id) if supplier_id else None
             supplier_name = supplier.name if supplier else "Proveedor No Asignado"
 
@@ -214,7 +232,7 @@ class InventoryService:
                 "min_stock": p.min_stock,
                 "suggested_quantity": quantity,
                 "unit_cost": unit_cost,
-                "total_estimated": round(quantity * unit_cost, 2)
+                "total_estimated": round(quantity * unit_cost, 2),
             }
 
             if supplier_id not in grouped_by_supplier:
@@ -222,7 +240,7 @@ class InventoryService:
                     "supplier_id": supplier_id,
                     "supplier_name": supplier_name,
                     "items": [],
-                    "total_order_cost": 0.0
+                    "total_order_cost": 0.0,
                 }
 
             grouped_by_supplier[supplier_id]["items"].append(item)
@@ -252,7 +270,7 @@ class InventoryService:
             quantity=quantity,
             reason=reason,
             status="Pendiente",
-            user_id=user_id
+            user_id=user_id,
         )
         db.session.add(loss_record)
         db.session.commit()
@@ -277,13 +295,18 @@ class InventoryService:
             if product.stock < loss_record.quantity:
                 raise ValueError("Stock insuficiente para aplicar la baja por merma.")
 
+            previous_stock = product.stock
             product.stock -= loss_record.quantity
+            new_stock = product.stock
+
             movement = InventoryMovementModel(
                 product_id=product.id,
                 user_id=approver_id,
                 movement_type="LOSS",
                 quantity=loss_record.quantity,
-                reason=f"Baja por Merma Aprobada #{loss_record.id}: {loss_record.reason}"
+                previous_stock=previous_stock,
+                new_stock=new_stock,
+                reason=f"Baja por Merma Aprobada #{loss_record.id}: {loss_record.reason}",
             )
             db.session.add(movement)
             loss_record.status = "Aprobado"
@@ -301,6 +324,7 @@ class InventoryService:
     def get_loss_records_history(self):
         records = LossRecordModel.query.order_by(LossRecordModel.created_at.desc()).all()
         return [r.to_dict() for r in records]
+
 
 # Alias de compatibilidad
 CompleteInventoryService = InventoryService

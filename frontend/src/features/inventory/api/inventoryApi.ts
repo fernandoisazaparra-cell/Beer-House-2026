@@ -14,6 +14,8 @@ export interface InventoryMovement {
   supplier_id?: number;
   supplier_name?: string;
   user_name?: string;
+  previous_stock?: number;
+  new_stock?: number;
   movement_type: string;
   quantity: number;
   invoice_number?: string;
@@ -116,7 +118,6 @@ export const registerEntry = async (data: EntryData) => {
   if (!res.ok) throw new Error(body.error || 'Error al registrar entrada de inventario.');
   return body;
 };
-
 export const registerAdjustment = async (data: AdjustmentData) => {
   const res = await authFetch(`${API_URL}/inventory/adjustments`, {
     method: 'POST',
@@ -124,7 +125,9 @@ export const registerAdjustment = async (data: AdjustmentData) => {
     body: JSON.stringify(data),
   });
   const body = await res.json();
-  if (!res.ok) throw new Error(body.error || 'Error al registrar el ajuste de inventario.');
+  if (!res.ok) {
+    throw new Error(body.details ? `${body.error}: ${body.details}` : body.error || 'Error al registrar el ajuste de inventario.');
+  }
   return body;
 };
 

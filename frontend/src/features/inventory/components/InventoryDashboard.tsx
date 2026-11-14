@@ -98,6 +98,11 @@ export const InventoryDashboard: React.FC = () => {
     }
   };
 
+  const isPositiveMovement = (movementType: string) =>
+    movementType === 'ENTRY' ||
+    movementType === 'ADJUSTMENT_IN' ||
+    movementType === 'ADJUSTMENT_AUTO';
+
   if (loading) {
     return <div className={styles.loading}>Cargando datos de inventario...</div>;
   }
@@ -171,31 +176,40 @@ export const InventoryDashboard: React.FC = () => {
 
       {/* Historial */}
       <section className={styles.cardSection}>
-        <h2 className={styles.sectionTitle}>Historial de Movimientos de Inventario</h2>
+        <h2 className={styles.sectionTitle}>Historial de Movimientos de Inventario (Trazabilidad RF-027)</h2>
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHeaderRow}>
               <th className={styles.tableHeaderCell}>Fecha</th>
               <th className={styles.tableHeaderCell}>Tipo</th>
               <th className={styles.tableHeaderCell}>Producto</th>
+              <th className={styles.tableHeaderCell}>Stock Anterior</th>
               <th className={styles.tableHeaderCell}>Cantidad</th>
+              <th className={styles.tableHeaderCell}>Stock Nuevo</th>
               <th className={styles.tableHeaderCell}>Soporte / Motivo</th>
+              <th className={styles.tableHeaderCell}>Usuario Responsable</th>
             </tr>
           </thead>
           <tbody>
-            {history.map((mov) => (
-              <tr key={mov.id} className={styles.tableRow}>
-                <td className={styles.tableCell}>{new Date(mov.created_at).toLocaleString()}</td>
-                <td className={styles.movementType}>{mov.movement_type}</td>
-                <td className={styles.tableCell}>{mov.product_name}</td>
-                <td className={mov.movement_type === 'ENTRY' ? styles.qtyEntry : styles.qtyOut}>
-                  {mov.movement_type === 'ENTRY' ? `+${mov.quantity}` : `-${mov.quantity}`}
-                </td>
-                <td className={styles.tableCell}>
-                  {mov.invoice_number || mov.reason || 'Sin observación'}
-                </td>
-              </tr>
-            ))}
+            {history.map((mov) => {
+              const positive = isPositiveMovement(mov.movement_type);
+              return (
+                <tr key={mov.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>{new Date(mov.created_at).toLocaleString()}</td>
+                  <td className={styles.movementType}>{mov.movement_type}</td>
+                  <td className={styles.tableCell}>{mov.product_name}</td>
+                  <td className={styles.tableCell}>{mov.previous_stock ?? '—'}</td>
+                  <td className={positive ? styles.qtyEntry : styles.qtyOut}>
+                    {positive ? `+${mov.quantity}` : `-${mov.quantity}`}
+                  </td>
+                  <td className={styles.tableCell}>{mov.new_stock ?? '—'}</td>
+                  <td className={styles.tableCell}>
+                    {mov.invoice_number || mov.reason || 'Sin observación'}
+                  </td>
+                  <td className={styles.tableCell}>{mov.user_name || 'Sistema'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>
