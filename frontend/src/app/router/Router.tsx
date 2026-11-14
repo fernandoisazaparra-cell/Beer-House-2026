@@ -12,7 +12,7 @@ import { ProductDetailPage } from "@/pages/Products/ProductDetailPage";
 import { ProfilePage } from "@/pages/auth/ProfilePage";
 
 // Carrito
-import CarritoPage from "@/pages/carrito/CarritoPage";
+import CarritoPage from "@/pages/Carrito/CarritoPage";
 
 // Catálogo Visual (Nuevo)
 

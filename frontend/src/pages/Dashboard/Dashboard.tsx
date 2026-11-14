@@ -34,21 +34,6 @@ interface DashboardApiData {
 
 /* ───────────── Utilidades ───────────── */
 
-const formatCOP = (value?: number) =>
-  `$${(value ?? 0).toLocaleString("es-CO")}`;
-
-const formatMillions = (value?: number) =>
-  `$${(Number(value) || 0).toFixed(1)}M`;
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-
-
 /* ───────────── Componente Principal ───────────── */
 
 
