@@ -4,6 +4,7 @@ import { CreateInvoiceModal } from "./CreateInvoiceModal";
 import { PayInvoiceModal } from "./PayInvoiceModal";
 import { receivePurchaseOrder, getPurchaseInvoices } from "../api/purchasesApi";
 import { authFetch, downloadWithAuth } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
 
 type PurchaseOrder = {
   id?: number | string;
@@ -58,7 +59,7 @@ export const PurchasesDashboard: React.FC = () => {
       setLoading(true);
 
       // 1. Órdenes
-      const resOrders = await authFetch("http://localhost:5000/api/purchases/orders");
+      const resOrders = await authFetch(`${API_URL}/purchases/orders`);
       if (resOrders.ok) {
         const dataOrders = await resOrders.json();
         setOrders(
@@ -85,7 +86,7 @@ export const PurchasesDashboard: React.FC = () => {
 
       // 3. Métricas KPI
       try {
-        const resSummary = await authFetch("http://localhost:5000/api/purchases/summary");
+        const resSummary = await authFetch(`${API_URL}/purchases/summary`);
         if (resSummary.ok) {
           const dataSummary = await resSummary.json();
           setSummary({
@@ -138,7 +139,7 @@ export const PurchasesDashboard: React.FC = () => {
 
   const handleExportExcel = (type: "orders" | "invoices") => {
     downloadWithAuth(
-      `http://localhost:5000/api/purchases/export/excel?type=${type}`,
+      `${API_URL}/purchases/export/excel?type=${type}`,
       type === "invoices" ? "Reporte_Facturas_Proveedores.csv" : "Reporte_Ordenes_Compra.csv"
     ).catch((err) => alert(err.message));
   };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getPhysicalCounts, applyStockAdjustment } from "../../features/inventory/api/inventoryApi";
 import { PhysicalCountModal } from "../../features/inventory/components/PhysicalCountModal";
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
 
 interface PhysicalCount {
   id: number;
@@ -30,7 +31,7 @@ export const PhysicalCountsDashboard: React.FC = () => {
       setCounts(Array.isArray(countsData) ? countsData : []);
 
       // Cargar catálogo de productos para el modal
-      const resProducts = await authFetch("http://localhost:5000/api/products/")
+      const resProducts = await authFetch(`${API_URL}/products/`)
       if (resProducts.ok) {
         const prodData = await resProducts.json();
         setProducts(Array.isArray(prodData) ? prodData : []);

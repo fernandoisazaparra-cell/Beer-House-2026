@@ -10,6 +10,7 @@ import {
   FaClipboardCheck,
 } from "react-icons/fa";
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
 
 /* ───────────── Tipos ───────────── */
 
@@ -81,7 +82,7 @@ const Dashboard = () => {
         setLoading(true);
 
         const response = await authFetch(
-          "http://127.0.0.1:5000/api/dashboard/summary"
+          `${API_URL}/dashboard/summary`
         );
 
         if (!response.ok) {

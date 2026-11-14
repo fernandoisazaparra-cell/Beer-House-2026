@@ -1,12 +1,14 @@
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
+
 export const getSuppliers = async (includeInactive = false) => {
-  const res = await authFetch(`http://localhost:5000/api/suppliers?include_inactive=${includeInactive}`);
+  const res = await authFetch(`${API_URL}/suppliers?include_inactive=${includeInactive}`);
   if (!res.ok) throw new Error("Error al obtener proveedores.");
   return res.json();
 };
 
 export const createSupplier = async (data: any) => {
-  const res = await authFetch("http://localhost:5000/api/suppliers", {
+  const res = await authFetch(`${API_URL}/suppliers`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -19,7 +21,7 @@ export const createSupplier = async (data: any) => {
 };
 
 export const updateSupplier = async (id: number, data: any) => {
-  const res = await authFetch(`http://localhost:5000/api/suppliers/${id}`, {
+  const res = await authFetch(`${API_URL}/suppliers/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -32,7 +34,7 @@ export const updateSupplier = async (id: number, data: any) => {
 };
 
 export const toggleSupplierStatus = async (id: number, isActive: boolean) => {
-  const res = await authFetch(`http://localhost:5000/api/suppliers/${id}/status`, {
+  const res = await authFetch(`${API_URL}/suppliers/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),

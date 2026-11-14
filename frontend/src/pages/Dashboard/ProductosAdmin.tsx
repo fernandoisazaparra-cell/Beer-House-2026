@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ProductosAdmin.css';
 import { AiOutlineProduct } from '@/ui/icons';
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
 import { CreateComboModal } from '../../features/productos/componets/CreateComboModal';
 import type { Combo } from '../../features/productos/combos.types';
 
@@ -40,7 +41,7 @@ export const ProductosAdmin = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await authFetch('http://127.0.0.1:5000/api/products/');
+      const response = await authFetch(`${API_URL}/products/`);
       if (!response.ok) throw new Error('Error al consultar productos');
       const data = await response.json();
 
@@ -64,7 +65,7 @@ export const ProductosAdmin = () => {
 
   const fetchCombos = async () => {
     try {
-      const response = await authFetch('http://127.0.0.1:5000/api/products/combos');
+      const response = await authFetch(`${API_URL}/products/combos`);
       if (response.ok) {
         const data = await response.json();
         
@@ -106,8 +107,8 @@ export const ProductosAdmin = () => {
     try {
       const isEditing = !!editingCombo;
       const url = isEditing
-        ? `http://127.0.0.1:5000/api/products/combos/${editingCombo.id}`
-        : 'http://127.0.0.1:5000/api/products/combos';
+        ? `${API_URL}/products/combos/${editingCombo.id}`
+        : `${API_URL}/products/combos`;
       
       const method = isEditing ? 'PUT' : 'POST';
 
@@ -148,7 +149,7 @@ export const ProductosAdmin = () => {
     if (!window.confirm('¿Deseas eliminar este combo de la base de datos?')) return;
 
     try {
-      const response = await authFetch(`http://127.0.0.1:5000/api/products/combos/${id}`, {
+      const response = await authFetch(`${API_URL}/products/combos/${id}`, {
         method: 'DELETE',
       });
 
@@ -227,7 +228,7 @@ export const ProductosAdmin = () => {
     };
 
     try {
-      const cleanBase = 'http://127.0.0.1:5000/api/products';
+      const cleanBase = `${API_URL}/products`;
       const url = editingProduct
         ? `${cleanBase}/${editingProduct.id}`
         : `${cleanBase}/`;
@@ -260,7 +261,7 @@ export const ProductosAdmin = () => {
     if (!window.confirm('¿Deseas eliminar este producto de la base de datos?')) return;
 
     try {
-      const response = await authFetch(`http://127.0.0.1:5000/api/products/${id}`, {
+      const response = await authFetch(`${API_URL}/products/${id}`, {
         method: 'DELETE',
       });
 

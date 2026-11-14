@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../../app/context/cartUse';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '@/app/api';
 import './CarritoPage.css';
 
 export const CarritoPage = () => {
@@ -31,7 +32,7 @@ export const CarritoPage = () => {
         total_amount: totalPrice,
       };
 
-      const res = await fetch('http://localhost:5000/api/sales', {
+      const res = await fetch(`${API_URL}/sales`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),

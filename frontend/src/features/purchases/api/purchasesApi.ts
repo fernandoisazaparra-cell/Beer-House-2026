@@ -1,6 +1,8 @@
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
+
 export const receivePurchaseOrder = async (orderId: number) => {
-  const response = await authFetch(`http://localhost:5000/api/purchases/orders/${orderId}/receive`, {
+  const response = await authFetch(`${API_URL}/purchases/orders/${orderId}/receive`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -17,13 +19,13 @@ export const receivePurchaseOrder = async (orderId: number) => {
 };
 
 export const getPurchaseInvoices = async () => {
-  const response = await authFetch("http://localhost:5000/api/purchases/invoices");
+  const response = await authFetch(`${API_URL}/purchases/invoices`);
   if (!response.ok) throw new Error("Error al obtener las facturas de compra.");
   return response.json();
 };
 
 export const createPurchaseInvoice = async (invoiceData: any) => {
-  const response = await authFetch("http://localhost:5000/api/purchases/invoices", {
+  const response = await authFetch(`${API_URL}/purchases/invoices`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(invoiceData),
@@ -37,7 +39,7 @@ export const createPurchaseInvoice = async (invoiceData: any) => {
   return response.json();
 };
 export const payPurchaseInvoice = async (invoiceId: number, paymentData: { payment_method: string; payment_status: string }) => {
-  const response = await authFetch(`http://localhost:5000/api/purchases/invoices/${invoiceId}/pay`, {
+  const response = await authFetch(`${API_URL}/purchases/invoices/${invoiceId}/pay`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(paymentData),
