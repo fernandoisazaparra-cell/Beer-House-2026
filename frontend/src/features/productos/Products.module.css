@@ -298,9 +298,13 @@
 }
 /* ==========================================================
    TARJETA
+   Columna flexible: así el botón queda siempre abajo y alineado
+   aunque el nombre ocupe 1 o 2 líneas.
 ========================================================== */
 .productCard {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     background: #0d0d0d;
     border: 1px solid #3d301d;
@@ -313,43 +317,53 @@
 }
 /* ==========================================================
    IMAGEN
+   object-fit: contain -> la foto se ve completa, sin recortes.
+   Fondo claro + multiply: las fotos con fondo blanco (JPG) y las de
+   fondo transparente (PNG) se ven iguales, como en un estudio.
 ========================================================== */
 .productImage {
     position: relative;
-    height: 135px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 170px;
+    padding: 14px;
+    box-sizing: border-box;
     overflow: hidden;
-    background: #111;
+    background: radial-gradient(circle at 50% 40%, #fbf8f3 0%, #e9e2d6 100%);
 }
 .productImage img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    mix-blend-mode: multiply;
 }
 /* Etiqueta destacado */
 .featured {
     position: absolute;
-    top: 7px;
-    left: 7px;
+    top: 8px;
+    left: 8px;
     z-index: 2;
-    padding: 3px 6px;
+    padding: 4px 7px;
     background: #17130d;
     border: 1px solid #b98a3f;
     border-radius: 3px;
     color: #d4a958;
-    font-size: 6px;
+    font-size: 8px;
     letter-spacing: 0.5px;
 }
 /* Favorito */
 .favorite {
     position: absolute;
     top: 6px;
-    right: 7px;
+    right: 8px;
     z-index: 2;
     background: transparent;
     border: none;
-    color: #d0a35c;
+    color: #8b642d;
     font-size: 22px;
+    line-height: 1;
     cursor: pointer;
 }
 /* ==========================================================
@@ -357,19 +371,27 @@
 ========================================================== */
 .productInfo {
     position: relative;
-    padding: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
 }
 .productInfo h2 {
     margin: 0 0 4px;
     color: #eeeeee;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    line-height: 1.1;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    line-height: 1.25;
+    /* máximo 2 líneas; si es más largo se corta con "..." */
+    display: -webkit-box;
+    /* -webkit-line-clamp: 2; */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 .details {
-    margin: 0 0 5px;
-    color: #777777;
-    font-size: 7px;
+    margin: 0 0 6px;
+    color: #8a8a8a;
+    font-size: 9px;
 }
 /* ==========================================================
    ESTRELLAS
@@ -381,59 +403,66 @@
 }
 .rating span {
     color: #d4a34f;
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 1px;
 }
 .rating small {
-    color: #777777;
-    font-size: 7px;
+    color: #8a8a8a;
+    font-size: 8px;
 }
 /* ==========================================================
-   PRECIO
+   PRECIO + STOCK (en la misma fila, el stock va a la derecha)
 ========================================================== */
 .price {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 4px;
+    margin: 8px 0 12px;
 }
 .price strong {
     color: #d5a44f;
-    font-size: 14px;
+    font-size: 15px;
 }
 .price del {
-    color: #555555;
-    font-size: 7px;
+    color: #666666;
+    font-size: 9px;
 }
-/* ==========================================================
-   STOCK
-========================================================== */
 .stock {
-    position: absolute;
-    right: 8px;
-    bottom: 44px;
+    margin-left: auto;
     color: #73a94d;
-    font-size: 7px;
+    font-size: 9px;
+}
+.stockOut {
+    color: #c0564b;
 }
 /* ==========================================================
    CARRITO
+   margin-top: auto -> empuja el botón al fondo de la tarjeta.
 ========================================================== */
 .addCart {
     width: 100%;
-    height: 25px;
-    margin-top: 7px;
+    height: 30px;
+    margin-top: auto;
     background: transparent;
     border: 1px solid #a07735;
     border-radius: 4px;
     color: #d0a35c;
     font-family: inherit;
-    font-size: 7px;
+    font-size: 9px;
+    letter-spacing: 0.6px;
     cursor: pointer;
     transition: background 0.3s ease, color 0.3s ease;
 }
-.addCart:hover {
+.addCart:hover:not(:disabled) {
     background: #c99c54;
     color: #080808;
+}
+/* Deshabilitado: agotado o vista de administrador */
+.addCart:disabled {
+    background: #14100b;
+    border-color: #3d301d;
+    color: #8a7550;
+    cursor: not-allowed;
 }
 /* ==========================================================
    TABLET
@@ -481,3 +510,58 @@
         flex-wrap: wrap;
     }
 }
+
+/* ==========================================================
+   PASO 2: catálogo conectado (filtros, paginación, mensajes)
+========================================================== */
+.numberInput {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: #14100b;
+    border: 1px solid #57401f;
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 11px;
+}
+.numberInput::placeholder { color: #8a7550; }
+.cardLink { color: inherit; text-decoration: none; }
+.cardLink:hover { color: #d0a35c; }
+.emptyState {
+    padding: 40px 10px;
+    text-align: center;
+    color: #888888;
+}
+.errorBox {
+    margin: 20px 0;
+    padding: 14px;
+    text-align: center;
+    color: #ff6b6b;
+    border: 1px solid #5a2323;
+    border-radius: 6px;
+}
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 22px;
+}
+.pageBtn {
+    min-width: 32px;
+    height: 30px;
+    padding: 0 10px;
+    background: transparent;
+    border: 1px solid #4d3920;
+    border-radius: 4px;
+    color: #d0a35c;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+.pageBtn:hover:not(:disabled) { background: #2b2114; }
+.pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pageBtnActive { background: #c99c54; color: #080808; border-color: #c99c54; }
+.pageBtnActive:hover:not(:disabled) { background: #c99c54; }

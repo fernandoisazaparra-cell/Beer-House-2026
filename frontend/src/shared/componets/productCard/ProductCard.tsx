@@ -1,113 +1,54 @@
-import styles from './ProductCard.module.css';
+import styles from "./ProductCard.module.css";
+import type { CatalogProduct } from '../../../features/productos/catalog.types';
 
 interface ProductCardProps {
-    id: number;
-    name: string;
-    image: string;
-    category: string;
-    age?: string;
-    rating?: number;
-    reviews?: number;
-    oldPrice?: number;
-    price: string;
-    featured?: boolean;
-    inStock?: boolean;
-    onAddToCart?: () => void;
+  producto: CatalogProduct;
 }
 
-export const ProductCard = ({
-    name,
-    image,
-    category,
-    age,
-    rating = 5,
-    reviews = 0,
-    oldPrice,
-    price,
-    featured = true,
-    inStock = true,
-    onAddToCart
-}: ProductCardProps) => {
-    return (
-        <article className={styles.card}>
-            
-            <div className={styles.imageContainer}>
-                
-                {featured && (
-                    <span className={styles.featured}>
-                        DESTACADO
-                    </span>
-                )}
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(price);
+};
 
-                <button
-                    className={styles.favorite}
-                    aria-label={`Agregar ${name} a favoritos`}
-                >
-                    ♡
-                </button>
+export const ProductCard = ({ producto }: ProductCardProps) => {
+  const available = producto.stock > 0;
+  const image = producto.image_url || "/images/product-placeholder.png";
 
-                <img
-                    src={image}
-                    alt={name}
-                    className={styles.image}
-                />
-            </div>
+  return (
+    <article className={styles.card}>
+      <div className={styles.imageContainer}>
+        <img
+          src={image}
+          alt={producto.name}
+          className={styles.image}
+          onError={(event) => {
+            event.currentTarget.src = "/images/product-placeholder.png";
+          }}
+        />
+      </div>
 
+      <div className={styles.content}>
+        <h3 className={styles.name}>{producto.name}</h3>
 
-            <div className={styles.content}>
+        <p className={styles.details}>{producto.liquor_type}</p>
 
-                <h3 className={styles.name}>
-                    {name}
-                </h3>
+        <div className={styles.priceRow}>
+          <span className={styles.price}>{formatPrice(producto.price)}</span>
 
+          <span className={styles.stock}>
+            {available ? "Disponible" : "Agotado"}
+          </span>
+        </div>
 
-                <p className={styles.details}>
-                    {age && `${age} años · `}
-                    {category}
-                </p>
+        <p className={styles.details}>{producto.description}</p>
 
-
-                <div className={styles.rating}>
-                    <span className={styles.stars}>
-                        {'★'.repeat(rating)}
-                    </span>
-
-                    <span className={styles.reviews}>
-                        ({reviews})
-                    </span>
-                </div>
-
-
-                {oldPrice && (
-                    <span className={styles.oldPrice}>
-                        {oldPrice}
-                    </span>
-                )}
-
-
-                <div className={styles.priceRow}>
-
-                    <span className={styles.price}>
-                        {price}
-                    </span>
-
-                    <span className={styles.stock}>
-                        {inStock ? 'En stock' : 'Agotado'}
-                    </span>
-
-                </div>
-
-
-                <button
-                    className={styles.addToCart}
-                    onClick={onAddToCart}
-                    disabled={!inStock}
-                >
-                    🛒 AGREGAR AL CARRITO
-                </button>
-
-            </div>
-
-        </article>
-    );
+        {producto.legal_warning && (
+          <p className={styles.details}>{producto.legal_warning}</p>
+        )}
+      </div>
+    </article>
+  );
 };

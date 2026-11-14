@@ -1,0 +1,188 @@
+
+/* =====================================================================
+   Estilos CSS para la vista de Perfil de Usuario (ProfilePage) - Beer House
+   ===================================================================== */
+
+.profile-container {
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 2.5rem;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 42rem;
+  background-color: #121212;
+  border: 1px solid #2a261f;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.profile-header {
+  border-bottom: 1px solid #2a261f;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-title {
+  font-size: 1.5rem;
+  font-family: serif;
+  color: #d4af37;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.profile-subtitle {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin-top: 0.25rem;
+}
+
+/* Alertas de Feedback / RN-002 */
+.feedback-alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.feedback-alert.warning {
+  background-color: rgba(69, 26, 3, 0.3);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fef3c7;
+}
+
+.feedback-alert.success {
+  background-color: rgba(6, 78, 59, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #d1fae5;
+}
+
+.feedback-alert.error {
+  background-color: rgba(127, 29, 29, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fee2e2;
+}
+
+.alert-icon {
+  font-size: 1.125rem;
+}
+
+.alert-text {
+  line-height: 1.6;
+}
+
+/* Formulario e Inputs */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #d4d4d8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.form-label .optional {
+  color: #52525b;
+  font-weight: 400;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #18181b;
+  color: #f4f4f5;
+  border: 1px solid #3f3f46;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-input:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 1px #d4af37;
+}
+
+.form-input.disabled {
+  background-color: #1a1a1a;
+  color: #71717a;
+  border-color: #2e2e2e;
+  font-family: monospace;
+  cursor: not-allowed;
+}
+
+.form-input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Botón de envío */
+.submit-container {
+  padding-top: 1rem;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(to right, #c59b27, #e6c253);
+  color: #000000;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: linear-gradient(to right, #b38a1f, #d4af37);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

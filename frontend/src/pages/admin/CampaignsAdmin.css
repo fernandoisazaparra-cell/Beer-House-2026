@@ -1,0 +1,279 @@
+/* ==========================================================
+   CampaignsAdmin — tema oscuro con acento ámbar
+   Clases basadas en la estructura BEM del componente
+   ========================================================== */
+
+.campaigns-admin {
+  padding: 2.5rem;
+  background-color: #0a0a0a;
+  color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* ---------- Encabezado ---------- */
+.campaigns-admin__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.campaigns-admin__header h1 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin: 0 0 0.25rem;
+}
+
+.campaigns-admin__header p {
+  color: #a3a3a3;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ---------- Botones ---------- */
+.campaigns-admin button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.5rem;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.campaigns-admin button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secundario (Actualizar, Cerrar modal) */
+.campaigns-admin__header button,
+.campaigns-admin__modal-content > button {
+  background-color: #262626;
+  color: #f5f5f5;
+  padding: 0.75rem 1.25rem;
+}
+
+.campaigns-admin__header button:hover:not(:disabled),
+.campaigns-admin__modal-content > button:hover:not(:disabled) {
+  background-color: #333333;
+}
+
+/* Primario (Crear registro) */
+.campaigns-admin__form button[type="submit"] {
+  background-color: #fbbf24;
+  color: #0a0a0a;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+}
+
+.campaigns-admin__form button[type="submit"]:hover:not(:disabled) {
+  background-color: #f59e0b;
+}
+
+/* Outline pequeño (acciones de la tabla) */
+.campaigns-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.campaigns-admin__actions button {
+  background: transparent;
+  border: 1px solid #fbbf24;
+  color: #fbbf24;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+}
+
+.campaigns-admin__actions button:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* ---------- Alertas ---------- */
+.campaigns-admin__alert {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.campaigns-admin__alert--success {
+  background: rgba(6, 78, 59, 0.4);
+  color: #34d399;
+}
+
+.campaigns-admin__alert--error {
+  background: rgba(127, 29, 29, 0.4);
+  color: #f87171;
+}
+
+/* ---------- Secciones ---------- */
+.campaigns-admin__form-section,
+.campaigns-admin__list-section {
+  margin-bottom: 2rem;
+}
+
+.campaigns-admin__form-section h2,
+.campaigns-admin__list-section h2 {
+  color: #fbbf24;
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
+.campaigns-admin__list-section > p {
+  color: #a3a3a3;
+}
+
+/* ---------- Formulario ---------- */
+.campaigns-admin__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  background-color: #171717;
+  border: 1px solid #262626;
+  border-radius: 0.85rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.campaigns-admin__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #a3a3a3;
+}
+
+.campaigns-admin__form input {
+  padding: 0.75rem;
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.campaigns-admin__form input::placeholder {
+  color: #525252;
+}
+
+.campaigns-admin__form input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+}
+
+/* ---------- Tabla ---------- */
+.campaigns-admin__table-wrapper {
+  background-color: #171717;
+  border: 1px solid #262626;
+  border-radius: 0.85rem;
+  overflow-x: auto;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.campaigns-admin__table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.campaigns-admin__table th {
+  padding: 1rem 1.25rem;
+  background-color: rgba(10, 10, 10, 0.5);
+  color: #fbbf24;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid #262626;
+  white-space: nowrap;
+}
+
+.campaigns-admin__table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #262626;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.campaigns-admin__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.campaigns-admin__table tbody tr:hover {
+  background-color: rgba(251, 191, 36, 0.04);
+}
+
+/* Nombre del registro y presupuesto resaltados en ámbar */
+.campaigns-admin__table td:first-child,
+.campaigns-admin__table td:nth-child(4) {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+/* ---------- Modal ---------- */
+.campaigns-admin__modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.campaigns-admin__modal-content {
+  background: #171717;
+  border: 1px solid #262626;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.campaigns-admin__modal-content h2 {
+  color: #fbbf24;
+  margin: 0 0 1.5rem;
+  font-size: 1.35rem;
+}
+
+.campaigns-admin__modal-content p {
+  margin: 0 0 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #f5f5f5;
+}
+
+.campaigns-admin__modal-content strong {
+  color: #a3a3a3;
+  font-weight: 600;
+}
+
+.campaigns-admin__modal-content > button {
+  display: block;
+  margin: 1.5rem 0 0 auto;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .campaigns-admin {
+    padding: 1.25rem;
+  }
+
+  .campaigns-admin__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .campaigns-admin__form {
+    padding: 1rem;
+  }
+}

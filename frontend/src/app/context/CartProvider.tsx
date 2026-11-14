@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { CartContext } from './cartContext';
 import type { CartItem } from './cartContext';
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
   const addToCart = (product: Omit<CartItem, 'quantity'>) => {
     setCart((prevCart) => {
@@ -15,6 +17,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
+    setIsCartOpen(true); // Abre el carrito lateral automáticamente al agregar
   };
 
   const removeFromCart = (id: string) => {
@@ -35,7 +38,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
+      value={{
+        cart,
+        isCartOpen,
+        setIsCartOpen,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice,
+      }}
     >
       {children}
     </CartContext.Provider>

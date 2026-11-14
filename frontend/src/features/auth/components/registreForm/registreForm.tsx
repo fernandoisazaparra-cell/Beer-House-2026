@@ -14,10 +14,7 @@ import {
     FaGoogle
 } from '@/ui/icons'
 
-import {
-    API_ROUTES
-} from '@/app/api'
-
+import { API_ROUTES } from '@/app/api'
 import { useRegistreForm } from '@/features/auth/hooks'
 
 export const RegistreForm = () => {
@@ -39,7 +36,6 @@ export const RegistreForm = () => {
         handleVerify,
         verifyError,
         setVerifyError
-
     } = useRegistreForm()
 
     const getFieldError = (name: string): string | undefined => {
@@ -61,23 +57,36 @@ export const RegistreForm = () => {
                     un mundo de sabores seleccionados para ti.
                 </h2>
 
-                <form action="" className={styles.formList} onSubmit={handleSubmit}>
+                <form className={styles.formList} onSubmit={handleSubmit}>
+                    {/* Requisito RF-001: Campos separados Nombre y Apellido */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <FormField
+                            label='Nombre'
+                            name='first_name'
+                            placeholder='Tu nombre'
+                            icon={<FaUser />}
+                            error={getFieldError('first_name')}
+                            autoComplete='off'
+                        />
+                        <FormField
+                            label='Apellido'
+                            name='last_name'
+                            placeholder='Tu apellido'
+                            icon={<FaUser />}
+                            error={getFieldError('last_name')}
+                            autoComplete='off'
+                        />
+                    </div>
+
                     <FormField
-                        label='Nombre Completo'
-                        name='name'
-                        placeholder='Ingrese tu nombre completo'
-                        icon={<FaUser />}
-                        error={getFieldError('name')}
-                        autoComplete='off'
-                    />
-                    <FormField
-                        label='Correo eletronico'
+                        label='Correo electrónico'
                         name='email'
                         placeholder='Ingrese tu correo electrónico'
                         icon={<SiGmail />}
                         error={getFieldError('email')}
                         autoComplete='off'
                     />
+
                     <FormField
                         label='Contraseña'
                         name='password'
@@ -94,7 +103,7 @@ export const RegistreForm = () => {
                         onChange={() => setTerms((prev) => !prev)}
                         error={getFieldError('terms')}
                     >
-                        Acepto los <a href="">Términos y Condiciones</a> y la <a href="">Política de Privacidad</a>
+                        Acepto los <a href="/terms">Términos y Condiciones</a> y la <a href="/privacy">Política de Privacidad</a>
                     </FormCheckbox>
 
                     <FormCheckbox
@@ -113,17 +122,13 @@ export const RegistreForm = () => {
                     )}
 
                     <button type='submit' className={styles.button} disabled={isLoading}>
-                        {isLoading
-                            ? 'REGISTRANDO...'
-                            : 'CREAR CUENTA'
-                        }
+                        {isLoading ? 'REGISTRANDO...' : 'CREAR CUENTA'}
                     </button>
                 </form>
 
-                <LineDecoration
-                    variant='text'
-                    color='var(--color-text-muted)'
-                >o regístrate con</LineDecoration>
+                <LineDecoration variant='text' color='var(--color-text-muted)'>
+                    o regístrate con
+                </LineDecoration>
 
                 <div className={styles.registreExternert}>
                     <button

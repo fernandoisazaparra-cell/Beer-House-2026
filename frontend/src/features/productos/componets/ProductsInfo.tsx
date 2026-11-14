@@ -1,23 +1,20 @@
-import styles from '../Products.module.css'
+import styles from '../Products.module.css';
 
 interface ProductsInfoProps {
-    total: number
-    mostrando: number
+  from: number;
+  to: number;
+  total: number;
 }
 
 // ======================================================
-// INFORMACIÓN DE PRODUCTOS (contador + opciones de vista)
+// CONTADOR DE PRODUCTOS
 // ======================================================
-export const ProductsInfo = ({ total, mostrando }: ProductsInfoProps) => {
-    return (
-        <div className={styles.productsInfo}>
-            <span>Mostrando 1-{mostrando} de {total} productos</span>
-
-            <div className={styles.viewOptions}>
-                <span>Ver:</span>
-                <button type="button" className={styles.activeView}>▦</button>
-                <button type="button">☷</button>
-            </div>
-        </div>
-    )
-}
+export const ProductsInfo = ({ from, to, total }: ProductsInfoProps) => {
+  return (
+    <div className={styles.productsInfo}>
+      <span>
+        {total === 0 ? 'Sin resultados' : `Mostrando ${from}-${to} de ${total} productos`}
+      </span>
+    </div>
+  );
+};
