@@ -1,0 +1,122 @@
+/* Estilos unificados para el panel de administración de Beer House */
+
+.admin-container {
+  padding: 2rem;
+  background-color: #121212;
+  min-height: 100vh;
+  color: #e4e4e7;
+  font-family: inherit;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #2a261f;
+  padding-bottom: 1rem;
+}
+
+.admin-header h2 {
+  font-size: 1.75rem;
+  font-family: serif;
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 0;
+}
+
+.admin-subtitle {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+.admin-alert {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  background-color: rgba(6, 78, 59, 0.3);
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+}
+
+.admin-empty {
+  padding: 2rem;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+  color: #a1a1aa;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.admin-table-container {
+  overflow-x: auto;
+  border: 1px solid #2a261f;
+  border-radius: 0.5rem;
+  background-color: #141414;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.admin-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-table th {
+  background-color: #18181b;
+  color: #d4af37;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  border-bottom: 1px solid #2a261f;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #27272a;
+  color: #d4d4d8;
+}
+
+.admin-table tbody tr:hover {
+  background-color: rgba(39, 39, 42, 0.4);
+  transition: background-color 0.2s ease;
+}
+
+.btn-approve {
+  padding: 0.4rem 0.8rem;
+  background-color: #047857;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-right: 0.5rem;
+}
+
+.btn-approve:hover {
+  background-color: #059669;
+}
+
+.btn-reject {
+  padding: 0.4rem 0.8rem;
+  background-color: #991b1b;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-reject:hover {
+  background-color: #b91c1c;
+}

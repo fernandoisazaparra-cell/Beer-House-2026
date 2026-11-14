@@ -1,0 +1,180 @@
+.marketing-container {
+  padding: 2.5rem;
+  background-color: #0a0a0a;
+  color: #f5f5f5;
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+.marketing-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 1.5rem;
+}
+
+/* Tabs de navegación interna */
+.marketing-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #262626;
+  padding-bottom: 0.75rem;
+}
+
+.marketing-tab-btn {
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #171717;
+  color: #a3a3a3;
+}
+
+.marketing-tab-btn:hover {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fafafa;
+}
+
+.marketing-tab-btn.active {
+  background-color: #fbbf24;
+  color: #0a0a0a;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+}
+
+/* Sección de contenido */
+.marketing-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fde047;
+  margin-bottom: 1.25rem;
+}
+
+/* Grid de Combos */
+.marketing-combos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.marketing-combo-card {
+  background-color: #171717;
+  border: 1px solid #262626;
+  border-radius: 0.85rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.marketing-combo-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.marketing-combo-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fafafa;
+  margin-bottom: 0.5rem;
+}
+
+.marketing-combo-card p {
+  color: #a3a3a3;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+
+.marketing-combo-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #262626;
+  padding-top: 0.75rem;
+}
+
+.marketing-combo-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.marketing-combo-stock {
+  font-size: 0.75rem;
+  background-color: #262626;
+  color: #d4d4d4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+/* Tabla de Campañas */
+.marketing-table-container {
+  overflow-x: auto;
+  background-color: #171717;
+  border-radius: 0.85rem;
+  border: 1px solid #262626;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.marketing-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.marketing-table th {
+  padding: 1rem 1.25rem;
+  color: #fbbf24;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #262626;
+  background-color: rgba(10, 10, 10, 0.4);
+}
+
+.marketing-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #262626;
+  font-size: 0.9rem;
+  color: #e5e5e5;
+}
+
+.marketing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.marketing-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Badges de Estado Legal */
+.badge-legal-approved {
+  background-color: rgba(6, 78, 59, 0.4);
+  color: #34d399;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-legal-pending {
+  background-color: rgba(127, 29, 29, 0.4);
+  color: #f87171;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.marketing-empty {
+  color: #a3a3a3;
+  font-size: 0.9rem;
+  font-style: italic;
+  padding: 1rem 0;
+}

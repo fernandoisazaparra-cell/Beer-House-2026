@@ -1,26 +1,18 @@
-import styles from '../Products.module.css'
-import type { Producto } from '../productos.types'
-import { ProductCard } from '@/shared'
+import styles from '../Products.module.css';
+import type { CatalogProduct } from '../catalog.types';
+import { ProductCard } from './ProductCard';
 
 interface ProductsGridProps {
-  productos: Producto[]
+  productos: CatalogProduct[];
+  dimmed?: boolean;
 }
 
-export const ProductsGrid = ({ productos }: ProductsGridProps) => {
-
-  console.log(productos)
+export const ProductsGrid = ({ productos, dimmed = false }: ProductsGridProps) => {
   return (
-    <div className={styles.productsGrid}>
+    <div className={styles.productsGrid} style={{ opacity: dimmed ? 0.55 : 1, transition: 'opacity .2s' }}>
       {productos.map((producto) => (
-        <ProductCard 
-          key={producto.id}
-          id={producto.id} 
-          name={producto.nombre} 
-          image={producto.imagen} 
-          category={producto.categoria}
-          price={producto.precio}
-        />
+        <ProductCard key={producto.id} producto={producto} />
       ))}
     </div>
-  )
-}
+  );
+};
