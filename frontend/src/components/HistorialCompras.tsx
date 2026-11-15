@@ -15,8 +15,10 @@ interface HistorialComprasProps {
   userId: number;
 }
 
+
 export const API_URL =
     import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 
 export const HistorialCompras: React.FC<HistorialComprasProps> = ({ userId }) => {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
@@ -29,7 +31,11 @@ export const HistorialCompras: React.FC<HistorialComprasProps> = ({ userId }) =>
         setLoading(true);
         setError(null);
         
+
+        const response = await fetch(`http://localhost:5000/api/purchases/history/${userId}`, {
+
         const response = await fetch(`${API_URL}/purchases/history/${userId}`, {
+
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
           }

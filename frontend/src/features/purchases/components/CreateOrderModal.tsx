@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { authFetch } from "@/shared/lib/authFetch";
-import { API_URL } from "@/app/api";
 
+import { API_URL } from "@/app/api";
 
 interface Supplier {
   id: number;
@@ -37,7 +37,11 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ isOpen, onCl
   useEffect(() => {
     if (isOpen) {
       // 1. Proveedores activos
+
+      authFetch('http://localhost:5000/api/suppliers')
+
       authFetch(`${API_URL}/suppliers`)
+
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => {
           if (Array.isArray(data)) {
@@ -49,7 +53,11 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ isOpen, onCl
         .catch(() => setSuppliers([]));
 
       // 2. Productos
+
+      authFetch('http://localhost:5000/api/products/')
+
       authFetch(`${API_URL}/products/`)
+
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => setProducts(Array.isArray(data) ? data : []))
         .catch(() => setProducts([]));
@@ -89,7 +97,11 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ isOpen, onCl
     }
 
     try {
+
+      const res = await authFetch('http://localhost:5000/api/purchases/orders', {
+
       const res = await authFetch(`${API_URL}/purchases/orders`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

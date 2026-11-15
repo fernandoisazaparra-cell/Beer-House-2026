@@ -24,6 +24,15 @@ class Config:
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
     DB_NAME = os.getenv("DB_NAME", "beer_house")
 
+
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql+pymysql://"
+        f"{quote_plus(DB_USER)}:"
+        f"{quote_plus(DB_PASSWORD)}@"
+        f"{DB_HOST}:{DB_PORT}/"
+        f"{DB_NAME}?charset=utf8mb4"
+    )
+
     # En Railway se define MYSQL_PUBLIC_URL con el formato:
     # mysql://usuario:password@host:puerto/base
     # Si existe, tiene prioridad sobre las variables DB_*.
@@ -49,6 +58,7 @@ class Config:
             f"{DB_HOST}:{DB_PORT}/"
             f"{DB_NAME}?charset=utf8mb4"
         )
+        main
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

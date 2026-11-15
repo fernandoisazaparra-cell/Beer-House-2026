@@ -1,5 +1,8 @@
+
 from datetime import datetime
+
 from sqlalchemy import text
+
 from app.extensions import db
 from features.suppliers.infrastructure.models import SupplierModel
 
@@ -12,26 +15,41 @@ class InventoryMovementModel(db.Model):
     __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
-    supplier_id = db.Column(db.Integer, db.ForeignKey("suppliers.id"), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.id"), nullable=False
+    )
+    supplier_id = db.Column(
+        db.Integer, db.ForeignKey("suppliers.id"), nullable=True
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=True
+    )
 
     movement_type = db.Column(
         db.String(30), nullable=False
-    )  # 'ENTRY', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN', 'LOSS', 'ADJUSTMENT_AUTO'
+    )  # ENTRY, ADJUSTMENT_OUT, ADJUSTMENT_IN, LOSS, ADJUSTMENT_AUTO
+
     quantity = db.Column(db.Integer, nullable=False)
     previous_stock = db.Column(db.Integer, nullable=True)
     new_stock = db.Column(db.Integer, nullable=True)
+
     invoice_number = db.Column(db.String(50), nullable=True)
     reason = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False
+    )
 
-    # Relaciones con lazy='joined'
-    product = db.relationship("ProductModel", backref="movements", lazy="joined")
-    supplier = db.relationship("SupplierModel", backref="movements", lazy="joined")
+    # Relaciones
+    product = db.relationship(
+        "ProductModel", backref="movements", lazy="joined"
+    )
+    supplier = db.relationship(
+        "SupplierModel", backref="movements", lazy="joined"
+    )
 
     def to_dict(self):
         responsible_name = "Sistema"
+
         if self.user_id:
             row = (
                 db.session.execute(
@@ -41,6 +59,7 @@ class InventoryMovementModel(db.Model):
                 .mappings()
                 .first()
             )
+
             if row:
                 responsible_name = (
                     row.get("name")
@@ -88,22 +107,33 @@ class PurchaseInvoiceModel(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    invoice_number = db.Column(db.String(50), unique=True, nullable=False)
+    invoice_number = db.Column(
+        db.String(50), unique=True, nullable=False
+    )
     purchase_order_id = db.Column(
-        db.Integer, db.ForeignKey("purchase_orders.id"), nullable=False
+        db.Integer,
+        db.ForeignKey("purchase_orders.id"),
+        nullable=False,
     )
     supplier_id = db.Column(
-        db.Integer, db.ForeignKey("suppliers.id"), nullable=False
+        db.Integer,
+        db.ForeignKey("suppliers.id"),
+        nullable=False,
     )
+
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     invoice_date = db.Column(db.DateTime, nullable=False)
     due_date = db.Column(db.DateTime, nullable=False)
     file_url = db.Column(db.String(255), nullable=True)
-    payment_status = db.Column(db.String(30), default="Pendiente", nullable=False)
+    payment_status = db.Column(
+        db.String(30), default="Pendiente", nullable=False
+    )
     payment_date = db.Column(db.DateTime, nullable=True)
     payment_method = db.Column(db.String(50), nullable=True)
 
-    order = db.relationship("PurchaseOrderModel", backref="invoices", lazy="joined")
+    order = db.relationship(
+        "PurchaseOrderModel", backref="invoices", lazy="joined"
+    )
     supplier = db.relationship("SupplierModel", lazy="joined")
 
     def to_dict(self):
@@ -115,10 +145,14 @@ class PurchaseInvoiceModel(db.Model):
             "supplier_name": self.supplier.name if self.supplier else "N/A",
             "amount": float(self.amount) if self.amount else 0.0,
             "invoice_date": (
-                self.invoice_date.strftime("%Y-%m-%d") if self.invoice_date else ""
+                self.invoice_date.strftime("%Y-%m-%d")
+                if self.invoice_date
+                else ""
             ),
             "due_date": (
-                self.due_date.strftime("%Y-%m-%d") if self.due_date else ""
+                self.due_date.strftime("%Y-%m-%d")
+                if self.due_date
+                else ""
             ),
             "file_url": self.file_url or "",
             "payment_status": self.payment_status,
@@ -139,13 +173,17 @@ class PhysicalCountModel(db.Model):
     __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.id"), nullable=False
+    )
     system_stock = db.Column(db.Integer, nullable=False)
     physical_stock = db.Column(db.Integer, nullable=False)
     difference_percentage = db.Column(db.Float, nullable=False)
     signed_act_url = db.Column(db.String(255), nullable=True)
     user_id = db.Column(db.Integer, nullable=False)
-    count_date = db.Column(db.DateTime, default=datetime.utcnow)
+    count_date = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
 
     product = db.relationship(
         "ProductModel", backref="physical_counts", lazy="joined"
@@ -159,11 +197,15 @@ class PhysicalCountModel(db.Model):
             "system_stock": self.system_stock,
             "physical_stock": self.physical_stock,
             "difference": self.physical_stock - self.system_stock,
-            "difference_percentage": round(self.difference_percentage or 0.0, 2),
+            "difference_percentage": round(
+                self.difference_percentage or 0.0, 2
+            ),
             "signed_act_url": self.signed_act_url or "",
             "user_id": self.user_id,
             "count_date": (
-                self.count_date.isoformat() if self.count_date else None
+                self.count_date.isoformat()
+                if self.count_date
+                else None
             ),
         }
 
@@ -176,13 +218,23 @@ class LossRecordModel(db.Model):
     __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.id"), nullable=False
+    )
     quantity = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default="Pendiente", nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    status = db.Column(
+        db.String(20), default="Pendiente", nullable=False
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=True
+    )
+    approved_by = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=True
+    )
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False
+    )
 
     product = db.relationship("ProductModel", lazy="joined")
 

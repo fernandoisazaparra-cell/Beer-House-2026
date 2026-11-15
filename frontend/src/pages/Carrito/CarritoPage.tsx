@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../../app/context/cartUse';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '@/app/api';
+import { API_URL } from '@/app/api'
 import './CarritoPage.css';
 
 export const CarritoPage = () => {
@@ -15,24 +15,45 @@ export const CarritoPage = () => {
     }
   };
 
-  const handleCheckout = async () => {
-    if (cart.length === 0) return;
+const handleCheckout = async () => {
+  if (cart.length === 0) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // Estructura para enviar la venta al backend
-      const orderPayload = {
-        user_id: 1, // Puedes tomarlo de useAuth() si lo tienes configurado
-        items: cart.map((item) => ({
-          product_id: Number(item.id),
-          quantity: item.quantity,
-          unit_price: item.price,
-        })),
-        total_amount: totalPrice,
-      };
+    // Simulación académica: no registra una venta real.
+    const demoOrder = {
+      items: cart.map((item) => ({
+        product_id: Number(item.id),
+        quantity: item.quantity,
+        unit_price: item.price,
+      })),
+      total_amount: totalPrice,
+      status: "demo",
+    };
 
+    console.log("Pedido de demostración:", demoOrder);
+
+    alert("¡Pedido de demostración completado!");
+    clearCart();
+    navigate("/dashboard");
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Ocurrió un error inesperado.";
+
+    alert(message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+      const res = await fetch('http://localhost:5000/api/sales', {
+        
       const res = await fetch(`${API_URL}/sales`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
