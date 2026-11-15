@@ -35,7 +35,7 @@ export const LoginForm = () => {
             <div className={styles.registreForm}>
                 <div className={styles.contentText}>
                     <span>INICIA</span>
-                    <span>SECCION</span>
+                    <span>SESION</span>
                 </div>
 
                 <LineDecoration color='var(--color-accent)' />
@@ -71,7 +71,7 @@ export const LoginForm = () => {
                     <button type='submit' className={styles.button} disabled={isLoading}>
                         {isLoading
                             ? 'INICIANDO...'
-                            : 'INICIA SECCION'
+                            : 'INICIA SESION'
                         }
                     </button>
                 </form>

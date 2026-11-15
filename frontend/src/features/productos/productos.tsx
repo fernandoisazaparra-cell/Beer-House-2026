@@ -12,6 +12,9 @@ import { ComboCard } from './componets/ComboCard';
 import { useState, useEffect } from 'react';
 import type { Combo } from './combos.types';
 
+import { API_URL } from '@/app/api';
+
+
 export const Products = () => {
   const c = useCatalog();
   const { data, loading, error, errorCode, filters } = c;
@@ -20,7 +23,11 @@ export const Products = () => {
   const [combos, setCombos] = useState<Combo[]>([]);
 
   useEffect(() => {
+
     fetch('http://127.0.0.1:5000/api/products/combos')
+
+    fetch(`${API_URL}/products/combos`)
+
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

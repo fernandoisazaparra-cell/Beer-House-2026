@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import styles from "./Dashboard.module.css";
@@ -10,8 +11,9 @@ import {
   FaClipboardCheck,
 } from "react-icons/fa";
 import { authFetch } from "@/shared/lib/authFetch";
+import { API_URL } from "@/app/api";
 
-/* ───────────── Tipos ───────────── */
+/* Tipos */
 
 interface StockAlert {
   id: number | string;
@@ -31,25 +33,7 @@ interface DashboardApiData {
   low_stock_items: StockAlert[];
 }
 
-/* ───────────── Utilidades ───────────── */
-
-const formatCOP = (value?: number) =>
-  `$${(value ?? 0).toLocaleString("es-CO")}`;
-
-const formatMillions = (value?: number) =>
-  `$${(Number(value) || 0).toFixed(1)}M`;
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-
-
-/* ───────────── Componente Principal ───────────── */
-
+/* Componente principal */
 
 const Dashboard = () => {
   const location = useLocation();
@@ -81,7 +65,7 @@ const Dashboard = () => {
         setLoading(true);
 
         const response = await authFetch(
-          "http://127.0.0.1:5000/api/dashboard/summary"
+          `${API_URL}/dashboard/summary`
         );
 
         if (!response.ok) {
@@ -99,7 +83,6 @@ const Dashboard = () => {
         });
 
         setStockAlerts(data.low_stock_items ?? []);
-
       } catch (error) {
         console.error("Error cargando dashboard:", error);
       } finally {
@@ -187,9 +170,7 @@ const Dashboard = () => {
 
             <div>
               <p>{kpi.label}</p>
-              <strong>
-                {loading ? "..." : kpi.value}
-              </strong>
+              <strong>{loading ? "..." : kpi.value}</strong>
             </div>
           </div>
         ))}
@@ -202,18 +183,14 @@ const Dashboard = () => {
               Productos con stock bajo
             </h2>
 
-            <FaExclamationTriangle
-              className={styles.warnIcon}
-            />
+            <FaExclamationTriangle className={styles.warnIcon} />
           </div>
 
           <div className={styles.list}>
             {loading ? (
               <p>Cargando inventario...</p>
             ) : stockAlerts.length === 0 ? (
-              <p>
-                No hay productos con alertas de stock.
-              </p>
+              <p>No hay productos con alertas de stock.</p>
             ) : (
               stockAlerts.map((item) => {
                 const ratio =
@@ -222,10 +199,7 @@ const Dashboard = () => {
                     : 1;
 
                 return (
-                  <div
-                    key={item.id}
-                    className={styles.stockRow}
-                  >
+                  <div key={item.id} className={styles.stockRow}>
                     <div className={styles.stockTop}>
                       <span>{item.name}</span>
 
@@ -250,10 +224,7 @@ const Dashboard = () => {
             )}
           </div>
 
-          <Link
-            to="/dashboard/inventario"
-            className={styles.link}
-          >
+          <Link to="/dashboard/inventario" className={styles.link}>
             Ir al inventario
           </Link>
         </div>
@@ -298,10 +269,7 @@ const Dashboard = () => {
                 </strong>
               </p>
 
-              <Link
-                to="/dashboard/mermas"
-                className={styles.link}
-              >
+              <Link to="/dashboard/mermas" className={styles.link}>
                 Revisar mermas
               </Link>
 
@@ -327,4 +295,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 

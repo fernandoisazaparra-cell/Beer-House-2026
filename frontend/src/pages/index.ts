@@ -1,6 +1,6 @@
 export { 
     Home 
-} from './home/home'
+} from './Home/home'
 
 export {
     MainLayout
@@ -14,4 +14,4 @@ export {
     ProductsPage 
 } from './Products'
 
-export { default as CarritoPage } from './carrito/CarritoPage';
+export { default as CarritoPage } from './Carrito/CarritoPage';

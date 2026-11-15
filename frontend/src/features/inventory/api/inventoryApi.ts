@@ -1,9 +1,21 @@
+
 import { authFetch } from "@/shared/lib/authFetch";
 const API_URL = 'http://localhost:5000/api';
 
 // ---------------------------------------------------------------------
 // Interfaces
 // ---------------------------------------------------------------------
+
+import { authFetch } from '@/shared/lib/authFetch';
+
+export const API_URL =
+    import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    
+// =====================================================================
+// INTERFACES
+// =====================================================================
+
+
 export interface InventoryMovement {
   id: number;
   product_id?: number;
@@ -11,6 +23,10 @@ export interface InventoryMovement {
   supplier_id?: number;
   supplier_name?: string;
   user_name?: string;
+
+  previous_stock?: number;
+  new_stock?: number;
+
   movement_type: string;
   quantity: number;
   invoice_number?: string;
@@ -81,11 +97,30 @@ export interface PhysicalCount {
   count_date: string;
 }
 
+
 // ---------------------------------------------------------------------
 // API Methods
 // ---------------------------------------------------------------------
 
 // 1. Movimientos e Historial
+
+export interface LossRecord {
+  id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  reason: string;
+  status: 'Pendiente' | 'Aprobado' | 'Rechazado';
+  user_id: number;
+  approved_by: number | null;
+  created_at: string;
+}
+
+// =====================================================================
+// 1. MOVIMIENTOS E HISTORIAL
+// =====================================================================
+
+
 export const getInventoryHistory = async (): Promise<InventoryMovement[]> => {
   const res = await authFetch(`${API_URL}/inventory/history`);
   if (!res.ok) throw new Error('Error al obtener historial de inventario.');
@@ -110,11 +145,23 @@ export const registerAdjustment = async (data: AdjustmentData) => {
     body: JSON.stringify(data),
   });
   const body = await res.json();
+
   if (!res.ok) throw new Error(body.error || 'Error al registrar el ajuste de inventario.');
   return body;
 };
 
 // 2. Catálogos auxiliares
+
+  if (!res.ok) {
+    throw new Error(body.details ? `${body.error}: ${body.details}` : body.error || 'Error al registrar el ajuste de inventario.');
+  }
+  return body;
+};
+
+// =====================================================================
+// 2. CATÁLOGOS AUXILIARES
+// =====================================================================
+
 export const getProducts = async (): Promise<SimpleEntity[]> => {
   const res = await authFetch(`${API_URL}/products/`);
   if (!res.ok) throw new Error('Error al obtener catálogo de productos.');
@@ -127,7 +174,12 @@ export const getSuppliers = async (): Promise<SimpleEntity[]> => {
   return res.json();
 };
 
-// 3. Conteos Físicos y Auditorías (RF-024 / RF-027)
+
+// =====================================================================
+// 3. CONTEOS FÍSICOS Y AUDITORÍAS (RF-024 / RF-027)
+// =====================================================================
+
+
 export const getPhysicalCounts = async (): Promise<PhysicalCount[]> => {
   const res = await authFetch(`${API_URL}/inventory/physical-counts`);
   if (!res.ok) throw new Error('Error al consultar historial de conteos físicos.');
@@ -170,7 +222,9 @@ export const applyStockAdjustment = async (
   return res.json();
 };
 
+
 // 4. Alertas y Reabastecimiento Automático (RF-028 / RN-026)
+
 export const getStockAlerts = async (): Promise<DetailedStockAlert[]> => {
   const res = await authFetch(`${API_URL}/inventory/alerts`);
   if (!res.ok) throw new Error('Error al obtener alertas de stock mínimo.');
@@ -191,6 +245,7 @@ export const generateReorderSuggestions = async (
   }
   return res.json();
 };
+
 export interface LossRecord {
   id: number;
   product_id: number;
@@ -203,13 +258,28 @@ export interface LossRecord {
   created_at: string;
 }
 
+
+// =====================================================================
+// 5. MERMAS Y PÉRDIDAS
+// =====================================================================
+
+
 export const getLossRecords = async (): Promise<LossRecord[]> => {
   const res = await authFetch(`${API_URL}/inventory/losses`);
   if (!res.ok) throw new Error('Error al consultar historial de mermas.');
   return res.json();
 };
 
+
 export const createLossRecord = async (data: { product_id: number; quantity: number; reason: string; user_id?: number }) => {
+
+export const createLossRecord = async (data: {
+  product_id: number;
+  quantity: number;
+  reason: string;
+  user_id?: number;
+}) => {
+
   const res = await authFetch(`${API_URL}/inventory/losses`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -222,7 +292,15 @@ export const createLossRecord = async (data: { product_id: number; quantity: num
   return res.json();
 };
 
+
 export const processLossApproval = async (lossId: number, action: 'APROBAR' | 'RECHAZAR', userRole: string = 'Supervisor') => {
+
+export const processLossApproval = async (
+  lossId: number,
+  action: 'APROBAR' | 'RECHAZAR',
+  userRole: string = 'Supervisor'
+) => {
+
   const res = await authFetch(`${API_URL}/inventory/losses/${lossId}/process`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

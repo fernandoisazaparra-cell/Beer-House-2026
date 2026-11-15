@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import './ProductosAdmin.css';
 import { AiOutlineProduct } from '@/ui/icons';
-import { authFetch } from "@/shared/lib/authFetch";
+import { authFetch } from '@/shared/lib/authFetch';
+import { API_URL } from '@/app/api';
 import { CreateComboModal } from '../../features/productos/componets/CreateComboModal';
 import type { Combo } from '../../features/productos/combos.types';
 
@@ -21,8 +23,7 @@ export const ProductosAdmin = () => {
   const [activeTab, setActiveTab] = useState<'products' | 'combos'>('products');
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Estado para controlar el modal de creación/edición de Combos (RF-056)
+
   const [isComboModalOpen, setIsComboModalOpen] = useState(false);
   const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
 
@@ -40,17 +41,26 @@ export const ProductosAdmin = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await authFetch('http://127.0.0.1:5000/api/products/');
-      if (!response.ok) throw new Error('Error al consultar productos');
+
+      const response = await authFetch(`${API_URL}/products/`);
+
+      if (!response.ok) {
+        throw new Error('Error al consultar productos');
+      }
+
       const data = await response.json();
 
-      const mappedProducts: Product[] = data.map((p: any) => ({
+      const mappedProducts: Product[] = (Array.isArray(data) ? data : []).map((p: any) => ({
         id: p.id || p.id_producto || 'PROD-000',
         name: p.name || p.nombre || 'Producto sin nombre',
         category: p.category || p.categoria || p.liquor_type || 'Licor',
         price: Number(p.price || p.precio || 0),
         stock: Number(p.stock || 0),
-        imageUrl: p.imageUrl || p.imagen || p.image_url || 'https://via.placeholder.com/100?text=Beer',
+        imageUrl:
+          p.imageUrl ||
+          p.imagen ||
+          p.image_url ||
+          'https://via.placeholder.com/100?text=Beer',
         description: p.description || p.descripcion || '',
       }));
 
@@ -64,24 +74,31 @@ export const ProductosAdmin = () => {
 
   const fetchCombos = async () => {
     try {
-      const response = await authFetch('http://127.0.0.1:5000/api/products/combos');
-      if (response.ok) {
-        const data = await response.json();
-        
-        const mappedCombos = (Array.isArray(data) ? data : []).map((c: any) => ({
-          id: c.id,
-          name: c.name || c.nombre,
-          description: c.description || c.descripcion,
-          price: Number(c.price || c.precio || 0),
-          discount: Number(c.discount || c.descuento || 0),
-          imageUrl: c.imageUrl || c.image_url || c.imagen || 'https://via.placeholder.com/100?text=Combo',
-          stock: Number(c.stock || 0),
-          status: c.status || 'active',
-          productsIncluded: c.productsIncluded || [] // <--- ¡Añade esta línea para cumplir con el tipo Combo!
-        }));
+      const response = await authFetch(`${API_URL}/products/combos`);
 
-        setCombosList(mappedCombos);
+      if (!response.ok) {
+        throw new Error('Error al consultar combos');
       }
+
+      const data = await response.json();
+
+      const mappedCombos: Combo[] = (Array.isArray(data) ? data : []).map((c: any) => ({
+        id: c.id,
+        name: c.name || c.nombre,
+        description: c.description || c.descripcion,
+        price: Number(c.price || c.precio || 0),
+        discount: Number(c.discount || c.descuento || 0),
+        imageUrl:
+          c.imageUrl ||
+          c.image_url ||
+          c.imagen ||
+          'https://via.placeholder.com/100?text=Combo',
+        stock: Number(c.stock || 0),
+        status: c.status || 'active',
+        productsIncluded: c.productsIncluded || [],
+      }));
+
+      setCombosList(mappedCombos);
     } catch (error) {
       console.error('Error al cargar combos en admin:', error);
     }
@@ -105,10 +122,11 @@ export const ProductosAdmin = () => {
   const handleSaveCombo = async (comboData: Combo) => {
     try {
       const isEditing = !!editingCombo;
+
       const url = isEditing
-        ? `http://127.0.0.1:5000/api/products/combos/${editingCombo.id}`
-        : 'http://127.0.0.1:5000/api/products/combos';
-      
+        ? `${API_URL}/products/combos/${editingCombo.id}`
+        : `${API_URL}/products/combos`;
+
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await authFetch(url, {
@@ -124,20 +142,24 @@ export const ProductosAdmin = () => {
           imageUrl: comboData.imageUrl,
           stock: comboData.stock,
           status: comboData.status,
-          productsIncluded: comboData.productsIncluded || []
+          productsIncluded: comboData.productsIncluded || [],
         }),
       });
 
-      const resData = await response.json();
+      const resData = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(resData.error || resData.details || 'No se pudo guardar el combo');
+        throw new Error(
+          resData.error || resData.details || 'No se pudo guardar el combo'
+        );
       }
 
       alert(isEditing ? '¡Combo actualizado con éxito!' : '¡Combo creado con éxito!');
+
       setIsComboModalOpen(false);
       setEditingCombo(null);
-      fetchCombos();
+
+      await fetchCombos();
     } catch (error: any) {
       console.error('Error al guardar combo:', error);
       alert(`Error al guardar el combo: ${error.message}`);
@@ -145,10 +167,12 @@ export const ProductosAdmin = () => {
   };
 
   const handleDeleteCombo = async (id: string | number) => {
-    if (!window.confirm('¿Deseas eliminar este combo de la base de datos?')) return;
+    if (!window.confirm('¿Deseas eliminar este combo de la base de datos?')) {
+      return;
+    }
 
     try {
-      const response = await authFetch(`http://127.0.0.1:5000/api/products/combos/${id}`, {
+      const response = await authFetch(`${API_URL}/products/combos/${id}`, {
         method: 'DELETE',
       });
 
@@ -172,22 +196,34 @@ export const ProductosAdmin = () => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
+
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+
       reader.readAsDataURL(file);
     }
   };
 
   const handleOpenAddModal = () => {
     setEditingProduct(null);
-    setFormData({ name: '', category: 'Cerveza', price: '', stock: '', description: '' });
+    setFormData({
+      name: '',
+      category: 'Cerveza',
+      price: '',
+      stock: '',
+      description: '',
+    });
     setImagePreview('');
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (product: Product) => {
     setEditingProduct(product);
+
     setFormData({
       name: product.name,
       category: product.category,
@@ -195,6 +231,7 @@ export const ProductosAdmin = () => {
       stock: product.stock.toString(),
       description: product.description,
     });
+
     setImagePreview(product.imageUrl);
     setIsModalOpen(true);
   };
@@ -221,13 +258,16 @@ export const ProductosAdmin = () => {
       stock: stockNum,
       description: formData.description,
       descripcion: formData.description,
-      image_url: imagePreview || 'https://via.placeholder.com/100?text=Beer',
-      imageUrl: imagePreview || 'https://via.placeholder.com/100?text=Beer',
-      imagen: imagePreview || 'https://via.placeholder.com/100?text=Beer',
+      image_url:
+        imagePreview || 'https://via.placeholder.com/100?text=Beer',
+      imageUrl:
+        imagePreview || 'https://via.placeholder.com/100?text=Beer',
+      imagen:
+        imagePreview || 'https://via.placeholder.com/100?text=Beer',
     };
 
     try {
-      const cleanBase = 'http://127.0.0.1:5000/api/products/';
+      const cleanBase = `${API_URL}/products`;
       const url = editingProduct
         ? `${cleanBase}/${editingProduct.id}`
         : `${cleanBase}/`;
@@ -242,10 +282,12 @@ export const ProductosAdmin = () => {
         body: JSON.stringify(payload),
       });
 
-      const resData = await response.json();
+      const resData = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(resData.details || resData.error || 'Error procesando producto');
+        throw new Error(
+          resData.error || resData.details || 'Error procesando producto'
+        );
       }
 
       await fetchProducts();
@@ -253,14 +295,16 @@ export const ProductosAdmin = () => {
     } catch (error: any) {
       console.error('Error al guardar producto:', error);
       alert(`No se pudo guardar el producto: ${error.message}`);
-    } 
+    }
   };
 
   const handleDeleteProduct = async (id: string | number) => {
-    if (!window.confirm('¿Deseas eliminar este producto de la base de datos?')) return;
+    if (!window.confirm('¿Deseas eliminar este producto de la base de datos?')) {
+      return;
+    }
 
     try {
-      const response = await authFetch(`http://127.0.0.1:5000/api/products/${id}`, {
+      const response = await authFetch(`${API_URL}/products/${id}`, {
         method: 'DELETE',
       });
 
@@ -283,29 +327,57 @@ export const ProductosAdmin = () => {
           <AiOutlineProduct style={{ marginRight: '8px', verticalAlign: 'middle' }} />
           Gestión de Productos y Combos
         </h2>
+
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={handleOpenAddCombo} className="btn-secondary" style={{ borderColor: '#c5a880', color: '#c5a880' }}>
+          <button
+            onClick={handleOpenAddCombo}
+            className="btn-secondary"
+            style={{ borderColor: '#c5a880', color: '#c5a880' }}
+          >
             + Crear Combo / Sugerencia
           </button>
+
           <button onClick={handleOpenAddModal} className="btn-primary">
             + Agregar producto
           </button>
         </div>
       </div>
 
-      {/* Selector de Pestañas para ver Productos o Combos */}
-      <div style={{ display: 'flex', gap: '15px', marginBottom: '15px', borderBottom: '1px solid #333', paddingBottom: '10px' }}>
-        <button 
-          type="button" 
-          onClick={() => setActiveTab('products')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'products' ? '#d0a35c' : '#888', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
+      <div
+        style={{
+          display: 'flex',
+          gap: '15px',
+          marginBottom: '15px',
+          borderBottom: '1px solid #333',
+          paddingBottom: '10px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab('products')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'products' ? '#d0a35c' : '#888',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '15px',
+          }}
         >
           Productos Individuales ({products.length})
         </button>
-        <button 
-          type="button" 
-          onClick={() => setActiveTab('combos')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'combos' ? '#d0a35c' : '#888', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('combos')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'combos' ? '#d0a35c' : '#888',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '15px',
+          }}
         >
           Combos Registrados ({combosList.length})
         </button>
@@ -330,6 +402,7 @@ export const ProductosAdmin = () => {
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               {products.length === 0 ? (
                 <tr>
@@ -380,6 +453,7 @@ export const ProductosAdmin = () => {
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               {combosList.length === 0 ? (
                 <tr>
@@ -398,8 +472,14 @@ export const ProductosAdmin = () => {
                     <td style={{ color: '#aaa', fontSize: '13px', maxWidth: '200px' }}>
                       {combo.description || 'Sin descripción'}
                     </td>
-                    <td><span style={{ color: '#2ecc71', fontWeight: 'bold' }}>{combo.discount}% OFF</span></td>
-                    <td className="price-text">${Number(combo.price).toLocaleString()}</td>
+                    <td>
+                      <span style={{ color: '#2ecc71', fontWeight: 'bold' }}>
+                        {combo.discount}% OFF
+                      </span>
+                    </td>
+                    <td className="price-text">
+                      ${Number(combo.price).toLocaleString()}
+                    </td>
                     <td>{combo.stock} un.</td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -419,25 +499,24 @@ export const ProductosAdmin = () => {
         )}
       </div>
 
-      {/* Modal de Creación / Edición de Combos (RF-056) */}
       {isComboModalOpen && (
-        <CreateComboModal 
+        <CreateComboModal
           initialCombo={editingCombo || undefined}
-          onSaveCombo={handleSaveCombo} 
+          onSaveCombo={handleSaveCombo}
           onClose={() => {
             setIsComboModalOpen(false);
             setEditingCombo(null);
-          }} 
+          }}
         />
       )}
 
-      {/* Modal de Productos */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3 className="modal-title">
               {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
             </h3>
+
             <form onSubmit={handleSaveProduct} className="form-group">
               <div className="form-field">
                 <label>Nombre</label>
@@ -453,10 +532,19 @@ export const ProductosAdmin = () => {
 
               <div className="form-field">
                 <label>Imagen del Producto</label>
-                <input type="file" accept="image/*" onChange={handleImageChange} className="form-input" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="form-input"
+                />
                 {imagePreview && (
                   <div style={{ marginTop: '8px', textAlign: 'center' }}>
-                    <img src={imagePreview} alt="Vista previa" className="product-img-preview" />
+                    <img
+                      src={imagePreview}
+                      alt="Vista previa"
+                      className="product-img-preview"
+                    />
                   </div>
                 )}
               </div>
@@ -488,6 +576,7 @@ export const ProductosAdmin = () => {
                     <option value="Aguardientes">Aguardientes</option>
                   </select>
                 </div>
+
                 <div className="form-field">
                   <label>Precio ($)</label>
                   <input
@@ -516,7 +605,11 @@ export const ProductosAdmin = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn-secondary"
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="btn-primary">
@@ -532,3 +625,4 @@ export const ProductosAdmin = () => {
 };
 
 export default ProductosAdmin;
+
