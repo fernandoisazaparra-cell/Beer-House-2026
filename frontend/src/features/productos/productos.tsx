@@ -1,3 +1,4 @@
+
 import styles from './Products.module.css';
 import { useCatalog } from './hooks/useCatalog';
 import { CATALOG_PER_PAGE } from './api/catalogApi';
@@ -11,33 +12,32 @@ import { Pagination } from './componets/Pagination';
 import { ComboCard } from './componets/ComboCard';
 import { useState, useEffect } from 'react';
 import type { Combo } from './combos.types';
-
 import { API_URL } from '@/app/api';
-
 
 export const Products = () => {
   const c = useCatalog();
   const { data, loading, error, errorCode, filters } = c;
 
-  // Estado para almacenar los combos obtenidos del backend
   const [combos, setCombos] = useState<Combo[]>([]);
 
   useEffect(() => {
-
-    fetch('http://127.0.0.1:5000/api/products/combos')
-
     fetch(`${API_URL}/products/combos`)
-
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCombos(data);
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((result) => {
+        if (Array.isArray(result)) {
+          setCombos(result);
         }
       })
-      .catch((err) => console.error('Error al cargar los combos:', err));
+      .catch((err) =>
+        console.error('Error al cargar los combos:', err)
+      );
   }, []);
 
-  // RF-021 / RN-020: el backend exige edad confirmada
   if (errorCode === 'age_not_confirmed') {
     return (
       <div className={styles.productsPage}>
@@ -50,7 +50,8 @@ export const Products = () => {
 
   const items = data?.items ?? [];
   const total = (data?.total ?? 0) + combos.length;
-  const from = total === 0 ? 0 : (filters.page - 1) * CATALOG_PER_PAGE + 1;
+  const from =
+    total === 0 ? 0 : (filters.page - 1) * CATALOG_PER_PAGE + 1;
   const to = from + items.length - 1;
 
   return (
@@ -92,19 +93,28 @@ export const Products = () => {
 
           <ProductsInfo from={from} to={to} total={total} />
 
-          {loading && !data && <p className={styles.emptyState}>Cargando productos...</p>}
+          {loading && !data && (
+            <p className={styles.emptyState}>Cargando productos...</p>
+          )}
+
           {error && <p className={styles.errorBox}>{error}</p>}
 
-          {/* Renderizar dinámicamente los combos creados desde la BD */}
-          {!error && combos.map((combo) => (
-            <div key={combo.id} style={{ marginBottom: '20px' }}>
-              <ComboCard combo={combo} />
-            </div>
-          ))}
+          {!error &&
+            combos.map((combo) => (
+              <div key={combo.id} style={{ marginBottom: '20px' }}>
+                <ComboCard combo={combo} />
+              </div>
+            ))}
 
-          {!error && items.length > 0 && <ProductsGrid productos={items} dimmed={loading} />}
+          {!error && items.length > 0 && (
+            <ProductsGrid productos={items} dimmed={loading} />
+          )}
 
-          <Pagination page={filters.page} pages={data?.pages ?? 1} onChange={c.setPage} />
+          <Pagination
+            page={filters.page}
+            pages={data?.pages ?? 1}
+            onChange={c.setPage}
+          />
         </div>
       </main>
     </div>
