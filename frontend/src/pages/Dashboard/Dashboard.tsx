@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import styles from "./Dashboard.module.css";
@@ -13,7 +12,7 @@ import {
 import { authFetch } from "@/shared/lib/authFetch";
 import { API_URL } from "@/app/api";
 
-/* Tipos */
+/* ───────────── Tipos ───────────── */
 
 interface StockAlert {
   id: number | string;
@@ -33,7 +32,10 @@ interface DashboardApiData {
   low_stock_items: StockAlert[];
 }
 
-/* Componente principal */
+/* ───────────── Utilidades ───────────── */
+
+/* ───────────── Componente Principal ───────────── */
+
 
 const Dashboard = () => {
   const location = useLocation();
@@ -83,6 +85,7 @@ const Dashboard = () => {
         });
 
         setStockAlerts(data.low_stock_items ?? []);
+
       } catch (error) {
         console.error("Error cargando dashboard:", error);
       } finally {
@@ -170,7 +173,9 @@ const Dashboard = () => {
 
             <div>
               <p>{kpi.label}</p>
-              <strong>{loading ? "..." : kpi.value}</strong>
+              <strong>
+                {loading ? "..." : kpi.value}
+              </strong>
             </div>
           </div>
         ))}
@@ -183,14 +188,18 @@ const Dashboard = () => {
               Productos con stock bajo
             </h2>
 
-            <FaExclamationTriangle className={styles.warnIcon} />
+            <FaExclamationTriangle
+              className={styles.warnIcon}
+            />
           </div>
 
           <div className={styles.list}>
             {loading ? (
               <p>Cargando inventario...</p>
             ) : stockAlerts.length === 0 ? (
-              <p>No hay productos con alertas de stock.</p>
+              <p>
+                No hay productos con alertas de stock.
+              </p>
             ) : (
               stockAlerts.map((item) => {
                 const ratio =
@@ -199,7 +208,10 @@ const Dashboard = () => {
                     : 1;
 
                 return (
-                  <div key={item.id} className={styles.stockRow}>
+                  <div
+                    key={item.id}
+                    className={styles.stockRow}
+                  >
                     <div className={styles.stockTop}>
                       <span>{item.name}</span>
 
@@ -224,7 +236,10 @@ const Dashboard = () => {
             )}
           </div>
 
-          <Link to="/dashboard/inventario" className={styles.link}>
+          <Link
+            to="/dashboard/inventario"
+            className={styles.link}
+          >
             Ir al inventario
           </Link>
         </div>
@@ -269,7 +284,10 @@ const Dashboard = () => {
                 </strong>
               </p>
 
-              <Link to="/dashboard/mermas" className={styles.link}>
+              <Link
+                to="/dashboard/mermas"
+                className={styles.link}
+              >
                 Revisar mermas
               </Link>
 
@@ -295,5 +313,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
 
