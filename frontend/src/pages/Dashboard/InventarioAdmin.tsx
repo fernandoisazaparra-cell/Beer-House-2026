@@ -2,9 +2,8 @@
 // 1. IMPORTACIONES Y TIPOS
 // ==========================================
 import { useState } from 'react';
-import { 
-  MdOutlineInventory 
-} from "@/ui/icons";
+import { MdOutlineInventory } from '@/ui/icons';
+
 interface StockItem {
   id: string;
   name: string;
@@ -43,7 +42,9 @@ export const InventarioAdmin = () => {
 
   return (
     <div style={{ color: '#fff', width: '100%' }}>
-      <h2>Control de Inventario</h2>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <MdOutlineInventory /> Control de Inventario
+      </h2>
       <div style={{ background: '#181818', borderRadius: '8px', padding: '16px', marginTop: '20px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -79,9 +80,24 @@ export const InventarioAdmin = () => {
                   </span>
                 </td>
                 <td style={{ padding: '12px', display: 'flex', gap: '6px' }}>
-                  <button onClick={() => handleUpdateStock(item.id, -1)} style={{ background: '#333', color: '#fff', border: '1px solid #555', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>-1</button>
-                  <button onClick={() => handleUpdateStock(item.id, 1)} style={{ background: '#333', color: '#fff', border: '1px solid #555', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>+1</button>
-                  <button onClick={() => handleUpdateStock(item.id, 10)} style={{ background: '#d4af37', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+10</button>
+                  <button
+                    onClick={() => handleUpdateStock(item.id, -1)}
+                    style={{ background: '#333', color: '#fff', border: '1px solid #555', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    -1
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStock(item.id, 1)}
+                    style={{ background: '#333', color: '#fff', border: '1px solid #555', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    +1
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStock(item.id, 10)}
+                    style={{ background: '#d4af37', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    +10
+                  </button>
                 </td>
               </tr>
             ))}
@@ -90,7 +106,6 @@ export const InventarioAdmin = () => {
       </div>
     </div>
   );
-  <MdOutlineInventory />
 };
 
 export default InventarioAdmin;

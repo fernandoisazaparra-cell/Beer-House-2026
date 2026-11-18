@@ -8,7 +8,6 @@ import {
     Footer
 } from '@/features'
 
-
 import {
     LayoutProvider,
     useLayout
@@ -38,17 +37,19 @@ const MobileOverlay = () => {
 
 export const MainLayout = () => {
     return (
-        <div className={styles.layout}>
-            <LayoutProvider>
+        <LayoutProvider>
+            <div className={styles.layout}>
                 <Aside />
                 <Header />
                 <MobileOverlay />
-            </LayoutProvider>
 
-            <main className={styles.main}>
-                <Outlet />
-                <Footer />
-            </main>
-        </div>
+                <main className={styles.main}>
+                    <div className={styles.content}>
+                        <Outlet />
+                    </div>
+                    <Footer />
+                </main>
+            </div>
+        </LayoutProvider>
     )
 }

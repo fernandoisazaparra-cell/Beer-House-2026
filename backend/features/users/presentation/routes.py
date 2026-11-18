@@ -1,47 +1,64 @@
-# =====================================================================
-# Rutas de autenticación (la "capa HTTP")
-# ---------------------------------------------------------------------
-# Una ruta hace 4 cosas simples, en orden:
-#   1) Leer el JSON que llega por la petición.
-#   2) Validar el FORMATO con un schema (Pydantic).
-#   3) Llamar al servicio, que valida reglas y habla con la BD.
-#   4) Convertir el resultado en una respuesta JSON.
-# =====================================================================
-# =====================================================================
-# Rutas de autenticación y gestión de usuarios (capa HTTP)
-# =====================================================================
-from threading import Thread
-import requests
-import os
-from app.extensions import db
-from ..infrastructure.repository import SQLAlchemyUserRepository, ahora_utc
-from ..infrastructure.models import ProfileUpdateRequest
+"""
+Rutas de autenticación y gestión de usuarios (capa HTTP)
 
+Secciones:
+    1. Imports y configuración
+    2. Helpers
+    3. Registro y verificación de correo
+    4. Login (correo y Google)
+    5. Sesión y términos
+    6. Perfil del usuario
+    7. Administración de solicitudes de perfil
+    8. CRUD de usuarios (panel admin)
+"""
+
+# ==========================================
+# 1. IMPORTS Y CONFIGURACIÓN
+# ==========================================
+
+import os
+from threading import Thread
+
+import requests
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
+from werkzeug.security import generate_password_hash
+
 from app.email.email_service import EmailError, EmailService
-from app.extensions import limiter
+from app.extensions import db, limiter
+from shared.security.decorators import role_required
+from shared.security.roles import STAFF_ROLES
 
 from ..application.services import UserService
 from ..application.services_auth import AuthService
-from shared.security.decorators import role_required
-from shared.security.roles import STAFF_ROLES
+from ..infrastructure.models import ProfileUpdateRequest
+from ..infrastructure.repository import SQLAlchemyUserRepository, ahora_utc
 from .schemas import (
     ConfirmTermsSchema,
     GoogleLoginSchema,
     LoginSchema,
     RegisterUserSchema,
     ResendCodeSchema,
-    VerifyEmailSchema
+    VerifyEmailSchema,
 )
-from werkzeug.security import generate_password_hash
 
-# Blueprints
 auth_bp = Blueprint("auth", __name__)
 users_bp = Blueprint("users_admin", __name__)
+
 repo = SQLAlchemyUserRepository()
 
+MSG_INVALID_JSON = "Body JSON inválido o vacío"
+MSG_NO_TOKEN = "Token no proporcionado"
+MSG_USER_NOT_FOUND = "Usuario no encontrado"
+MSG_REQUEST_NOT_FOUND = "Solicitud no encontrada o ya procesada"
+
+
+# ==========================================
+# 2. HELPERS
+# ==========================================
+
 def errores_pydantic(validation_error):
+    """Convierte los errores de Pydantic a {campo: [mensajes]}."""
     errores = {}
     for error in validation_error.errors():
         campo = str(error["loc"][0])
@@ -51,6 +68,12 @@ def errores_pydantic(validation_error):
             mensaje = error["msg"]
         errores.setdefault(campo, []).append(mensaje)
     return errores
+
+
+def get_bearer_token():
+    """Extrae el token del header Authorization (vacío si no viene)."""
+    return request.headers.get("Authorization", "").replace("Bearer ", "")
+
 
 def enviar_codigo_por_email(destinatario, codigo, nombre=None):
     try:
@@ -63,6 +86,7 @@ def enviar_codigo_por_email(destinatario, codigo, nombre=None):
     except EmailError as error:
         print(f"Error enviando correo: {error}")
 
+
 def enviar_codigo_en_background(destinatario, codigo, nombre=None):
     Thread(
         target=enviar_codigo_por_email,
@@ -70,12 +94,17 @@ def enviar_codigo_en_background(destinatario, codigo, nombre=None):
         daemon=True,
     ).start()
 
+
+# ==========================================
+# 3. REGISTRO Y VERIFICACIÓN DE CORREO
+# ==========================================
+
 @auth_bp.post("/register")
 @limiter.limit("10 per minute")
 def register():
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = RegisterUserSchema(**data)
@@ -83,30 +112,26 @@ def register():
         return {"errors": errores_pydantic(error)}, 400
 
     service = UserService()
-    # Tu lógica original usa first_name y last_name, ajustamos el registro según corresponda
-    partes = schema.name.split(" ", 1)
-    f_name = partes[0]
-    l_name = partes[1] if len(partes) > 1 else "Cliente"
-
     codigo, errores = service.register(
-    schema.name,
-    schema.email,
-    schema.password,
-    schema.terms,
-    schema.years
-)
+        schema.name,
+        schema.email,
+        schema.password,
+        schema.terms,
+        schema.years,
+    )
     if errores:
         return {"errors": errores}, 400
 
     enviar_codigo_en_background(schema.email, codigo, schema.name)
     return {"message": "Usuario registrado correctamente"}, 201
 
+
 @auth_bp.post("/verify-email")
 @limiter.limit("10 per minute")
 def verify_email():
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = VerifyEmailSchema(**data)
@@ -124,12 +149,13 @@ def verify_email():
 
     return {"message": "Correo verificado correctamente"}, 200
 
+
 @auth_bp.post("/token-repeat")
 @limiter.limit("5 per hour")
 def token_repeat():
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = ResendCodeSchema(**data)
@@ -148,6 +174,11 @@ def token_repeat():
     enviar_codigo_en_background(schema.email, codigo)
     return {"message": "Código reenviado. Revisa tu correo."}, 200
 
+
+# ==========================================
+# 4. LOGIN (CORREO Y GOOGLE)
+# ==========================================
+
 @auth_bp.route("/login", methods=["POST", "OPTIONS"])
 @limiter.limit("10 per minute")
 def login():
@@ -156,7 +187,7 @@ def login():
 
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = LoginSchema(**data)
@@ -171,12 +202,16 @@ def login():
 
     return resultado, 200
 
+
+# NOTA: el orden de estos decoradores se dejó igual que el original.
+# Con @limiter.limit encima de @auth_bp.post, el límite probablemente
+# NO se aplica. Para activarlo, invertir el orden.
 @limiter.limit("10 per minute")
 @auth_bp.post("/token-google")
 def login_google():
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = GoogleLoginSchema(**data)
@@ -195,7 +230,10 @@ def login_google():
     )
 
     if not token_response.ok:
-        return {"message": "No se pudo validar el código con Google", "detail": token_response.json()}, 400
+        return {
+            "message": "No se pudo validar el código con Google",
+            "detail": token_response.json(),
+        }, 400
 
     tokens = token_response.json()
     id_token_jwt = tokens.get("id_token")
@@ -205,7 +243,9 @@ def login_google():
 
     try:
         idinfo = google_id_token.verify_oauth2_token(
-            id_token_jwt, google_requests.Request(), os.getenv("GOOGLE_CLIENT_ID")
+            id_token_jwt,
+            google_requests.Request(),
+            os.getenv("GOOGLE_CLIENT_ID"),
         )
     except ValueError:
         return {"message": "Token de Google inválido"}, 400
@@ -225,12 +265,17 @@ def login_google():
 
     return resultado, 200
 
+
+# ==========================================
+# 5. SESIÓN Y TÉRMINOS
+# ==========================================
+
 @auth_bp.post("/confirm-terms")
 @limiter.limit("10 per minute")
 def confirm_terms():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    token = get_bearer_token()
     if not token:
-        return {"message": "Token no proporcionado"}, 401
+        return {"message": MSG_NO_TOKEN}, 401
 
     service = AuthService()
     try:
@@ -240,7 +285,7 @@ def confirm_terms():
 
     data = request.get_json(silent=True)
     if data is None:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     try:
         schema = ConfirmTermsSchema(**data)
@@ -254,12 +299,13 @@ def confirm_terms():
 
     return {"message": "Términos y edad confirmados correctamente"}, 200
 
+
 @auth_bp.get("/me")
 @limiter.limit("10 per minute")
 def me():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    token = get_bearer_token()
     if not token:
-        return {"message": "Token no proporcionado"}, 401
+        return {"message": MSG_NO_TOKEN}, 401
 
     service = AuthService()
     try:
@@ -269,26 +315,31 @@ def me():
 
     user = service.repository.find_by_email(payload["email"])
     if not user:
-        return {"message": "Usuario no encontrado"}, 404
+        return {"message": MSG_USER_NOT_FOUND}, 404
 
     return {
-    "user": {
-        "id": user.id,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "name": f"{user.first_name or ''} {user.last_name or ''}".strip(),
-        "email": user.email,
-        "rol": user.rol,
-    },
-    "requires_confirmation": user.age_confirmed_at is None
-}, 200
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "name": f"{user.first_name or ''} {user.last_name or ''}".strip(),
+            "email": user.email,
+            "rol": user.rol,
+        },
+        "requires_confirmation": user.age_confirmed_at is None,
+    }, 200
+
+
+# ==========================================
+# 6. PERFIL DEL USUARIO
+# ==========================================
 
 @auth_bp.put("/profile")
 @limiter.limit("10 per minute")
 def update_profile():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    token = get_bearer_token()
     if not token:
-        return {"message": "Token no proporcionado"}, 401
+        return {"message": MSG_NO_TOKEN}, 401
 
     service = AuthService()
     try:
@@ -298,31 +349,41 @@ def update_profile():
 
     data = request.get_json(silent=True)
     if not data:
-        return {"message": "Body JSON inválido o vacío"}, 400
+        return {"message": MSG_INVALID_JSON}, 400
 
     user = service.repository.find_by_email(payload["email"])
     if not user:
-        return {"message": "Usuario no encontrado"}, 404
+        return {"message": MSG_USER_NOT_FOUND}, 404
 
-    fecha_registro = getattr(user, 'created_at', None) or user.terms_accepted_at or user.age_confirmed_at
+    fecha_registro = (
+        getattr(user, "created_at", None)
+        or user.terms_accepted_at
+        or user.age_confirmed_at
+    )
     dias_antiguedad = (ahora_utc() - fecha_registro).days if fecha_registro else 0
 
+    # Cuentas con menos de 30 días: el cambio queda pendiente de aprobación
     if dias_antiguedad < 30:
         nueva_solicitud = ProfileUpdateRequest(
             user_id=user.id,
             requested_first_name=data.get("first_name", user.first_name),
             requested_last_name=data.get("last_name", user.last_name),
-            requested_birth_date=data.get("birth_date") if "birth_date" in data else user.birth_date,
-            status="pending"
+            requested_birth_date=(
+                data.get("birth_date") if "birth_date" in data else user.birth_date
+            ),
+            status="pending",
         )
         db.session.add(nueva_solicitud)
         db.session.commit()
 
         return {
             "status": "pending_approval",
-            "message": f"Tu cuenta fue creada hace {dias_antiguedad} días. Tu solicitud de actualización quedó registrada.",
+            "message": (
+                f"Tu cuenta fue creada hace {dias_antiguedad} días. "
+                "Tu solicitud de actualización quedó registrada."
+            ),
             "days_registered": dias_antiguedad,
-            "request_id": nueva_solicitud.id
+            "request_id": nueva_solicitud.id,
         }, 202
 
     user.first_name = data.get("first_name", user.first_name)
@@ -338,9 +399,14 @@ def update_profile():
         "user": {
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "email": user.email
-        }
+            "email": user.email,
+        },
     }, 200
+
+
+# ==========================================
+# 7. ADMINISTRACIÓN DE SOLICITUDES DE PERFIL
+# ==========================================
 
 @auth_bp.get("/admin/profile-requests")
 @role_required(*STAFF_ROLES)
@@ -355,17 +421,21 @@ def get_profile_requests():
             "user_email": req.user.email,
             "requested_first_name": req.requested_first_name,
             "requested_last_name": req.requested_last_name,
-            "requested_birth_date": req.requested_birth_date.isoformat() if req.requested_birth_date else None,
-            "created_at": req.created_at.isoformat()
+            "requested_birth_date": (
+                req.requested_birth_date.isoformat()
+                if req.requested_birth_date else None
+            ),
+            "created_at": req.created_at.isoformat(),
         })
     return {"requests": resultado}, 200
+
 
 @auth_bp.post("/admin/profile-requests/<int:request_id>/approve")
 @role_required(*STAFF_ROLES)
 def approve_profile_request(request_id):
     solicitud = ProfileUpdateRequest.query.get(request_id)
     if not solicitud or solicitud.status != "pending":
-        return {"message": "Solicitud no encontrada o ya procesada"}, 404
+        return {"message": MSG_REQUEST_NOT_FOUND}, 404
 
     user = solicitud.user
     user.first_name = solicitud.requested_first_name
@@ -379,12 +449,13 @@ def approve_profile_request(request_id):
     db.session.commit()
     return {"message": "Solicitud aprobada y perfil actualizado con éxito"}, 200
 
+
 @auth_bp.post("/admin/profile-requests/<int:request_id>/reject")
 @role_required(*STAFF_ROLES)
 def reject_profile_request(request_id):
     solicitud = ProfileUpdateRequest.query.get(request_id)
     if not solicitud or solicitud.status != "pending":
-        return {"message": "Solicitud no encontrada o ya procesada"}, 404
+        return {"message": MSG_REQUEST_NOT_FOUND}, 404
 
     solicitud.status = "rejected"
     solicitud.processed_at = ahora_utc()
@@ -393,24 +464,27 @@ def reject_profile_request(request_id):
     return {"message": "Solicitud rechazada correctamente"}, 200
 
 
-# =====================================================================
-# Endpoints CRUD para la Gestión de Clientes en el Panel Admin (users_bp)
-# =====================================================================
+# ==========================================
+# 8. CRUD DE USUARIOS (PANEL ADMIN)
+# ==========================================
+
 @users_bp.get("/")
 @role_required(*STAFF_ROLES)
 def get_users():
     try:
         users = repo.get_all_users()
-        resultado = []
-        for u in users:
-            resultado.append({
+        resultado = [
+            {
                 "id": u.id,
                 "name": f"{u.first_name} {u.last_name}".strip(),
-                "email": u.email
-            })
+                "email": u.email,
+            }
+            for u in users
+        ]
         return jsonify(resultado), 200
     except Exception as e:
         return jsonify({"error": "Error al listar usuarios", "details": str(e)}), 500
+
 
 @users_bp.post("/")
 @role_required(*STAFF_ROLES)
@@ -422,19 +496,27 @@ def create_user():
         password = data.get("password")
 
         if not name or not email or not password:
-            return jsonify({"error": "Faltan datos obligatorios (name, email, password)"}), 400
+            return jsonify({
+                "error": "Faltan datos obligatorios (name, email, password)"
+            }), 400
 
         partes = name.split(" ", 1)
         first_name = partes[0]
         last_name = partes[1] if len(partes) > 1 else "Cliente"
 
         hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
-        new_user = repo.create_user(first_name=first_name, last_name=last_name, email=email, password=hashed_password)
+        new_user = repo.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=hashed_password,
+        )
 
         return jsonify({"message": "Usuario creado con éxito", "id": new_user.id}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Error al crear usuario", "details": str(e)}), 500
+
 
 @users_bp.put("/<int:user_id>")
 @role_required(*STAFF_ROLES)
@@ -448,6 +530,7 @@ def update_user(user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Error al actualizar usuario", "details": str(e)}), 500
+
 
 @users_bp.delete("/<int:user_id>")
 @role_required(*STAFF_ROLES)

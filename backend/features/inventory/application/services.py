@@ -1,9 +1,11 @@
-
-from datetime import datetime
-
+from datetime import datetime, time
 from app.extensions import db
 from features.products.infrastructure.models import ProductModel
 from features.suppliers.infrastructure.models import SupplierModel
+from features.purchases.infrastructure.models import (
+    PurchaseOrderModel,
+    PurchaseOrderItemModel,
+)
 from features.inventory.infrastructure.models import (
     InventoryMovementModel,
     PhysicalCountModel,
@@ -14,7 +16,72 @@ from features.inventory.infrastructure.models import (
 class InventoryService:
 
     # ---------------------------------------------------------------------
-    # Movimientos e Historial de Inventario (RF-023 / RN-021)
+    # Disparo Automático de Orden de Reabastecimiento (RF-028 / RN-026)
+    # ---------------------------------------------------------------------
+    def _check_and_trigger_reorder(self, product, user_id=1):
+        """
+        Cuando product.stock <= product.min_stock, genera automáticamente
+        una orden de compra de reabastecimiento en estado 'Pendiente'
+        si no existe ya una orden abierta para ese producto.
+        """
+        if not product or not getattr(product, "is_active", True):
+            return None
+
+        if product.stock > product.min_stock:
+            return None
+
+        existing_open_item = (
+            db.session.query(PurchaseOrderItemModel)
+            .join(PurchaseOrderModel)
+            .filter(
+                PurchaseOrderItemModel.product_id == product.id,
+                PurchaseOrderModel.status.in_(["Pendiente", "Borrador", "Enviada"]),
+            )
+            .first()
+        )
+        if existing_open_item:
+            return existing_open_item.order
+
+        supplier_id = getattr(product, "supplier_id", None)
+        if not supplier_id:
+            first_supplier = SupplierModel.query.first()
+            if not first_supplier:
+                return None
+            supplier_id = first_supplier.id
+
+        target_stock = (product.min_stock * 2) if product.min_stock > 0 else 10
+        suggested_qty = max(target_stock - product.stock, 5)
+        unit_cost = float(getattr(product, "cost", None) or getattr(product, "price", 0.0) or 0.0)
+        total_amount = round(suggested_qty * unit_cost, 2)
+
+        order_number = f"REAB-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{product.id}"
+
+        order = PurchaseOrderModel(
+            order_number=order_number,
+            supplier_id=supplier_id,
+            user_id=user_id,
+            status="Pendiente",
+            total_amount=total_amount,
+            notes=(
+                f"Orden de reabastecimiento automática (RF-028 / RN-026) por stock mínimo "
+                f"en '{product.name}' (Stock: {product.stock}, Mínimo: {product.min_stock})."
+            ),
+        )
+        db.session.add(order)
+        db.session.flush()
+
+        item = PurchaseOrderItemModel(
+            purchase_order_id=order.id,
+            product_id=product.id,
+            quantity=suggested_qty,
+            quantity_received=0,
+            unit_cost=unit_cost,
+        )
+        db.session.add(item)
+        return order
+
+    # ---------------------------------------------------------------------
+    # Movimientos, Historial y Reporte de Periodo (RF-023 / RF-027 / RF-029)
     # ---------------------------------------------------------------------
     def register_entry(self, data, user_id=1):
         supplier_id = data.get("supplier_id")
@@ -107,9 +174,16 @@ class InventoryService:
         )
 
         db.session.add(movement)
+
+        auto_order = self._check_and_trigger_reorder(product, user_id=user_id)
+
         db.session.commit()
 
-        return movement.to_dict()
+        response = movement.to_dict()
+        if auto_order:
+            response["reorder_order_number"] = auto_order.order_number
+            response["reorder_triggered"] = True
+        return response
 
     def get_history(self, product_id=None):
         query = InventoryMovementModel.query
@@ -122,6 +196,108 @@ class InventoryService:
         ).all()
 
         return [movement.to_dict() for movement in movements]
+
+    def generate_inventory_report(self, start_date=None, end_date=None, requested_by="Administrador"):
+        """
+        RF-029 / RI-029 / RN-027: Genera el reporte consolidado de movimientos por periodo.
+        Garantiza: stock_inicial + entradas - salidas = stock_final y retención mínima de 5 años.
+        """
+        now_utc = datetime.utcnow()
+        today_str = now_utc.strftime("%Y-%m-%d")
+        start_str = start_date or f"{today_str[:8]}01"
+        end_str = end_date or today_str
+
+        try:
+            start_dt = datetime.combine(datetime.strptime(start_str, "%Y-%m-%d").date(), time.min)
+            end_dt = datetime.combine(datetime.strptime(end_str, "%Y-%m-%d").date(), time.max)
+        except ValueError:
+            raise ValueError("Formato de fecha inválido. Use YYYY-MM-DD.")
+
+        if start_dt > end_dt:
+            raise ValueError("La fecha de inicio no puede ser mayor que la fecha fin.")
+
+        positive_types = {"ENTRY", "ADJUSTMENT_IN", "ADJUSTMENT_AUTO"}
+        products = ProductModel.query.order_by(ProductModel.name.asc()).all()
+        items = []
+
+        for product in products:
+            current_stock = int(product.stock or 0)
+
+            after_movements = InventoryMovementModel.query.filter(
+                InventoryMovementModel.product_id == product.id,
+                InventoryMovementModel.created_at > end_dt,
+            ).all()
+
+            net_after = 0
+            for m in after_movements:
+                qty = int(m.quantity or 0)
+                if m.movement_type in positive_types:
+                    net_after += qty
+                else:
+                    net_after -= qty
+
+            final_stock = current_stock - net_after
+
+            period_movements = (
+                InventoryMovementModel.query.filter(
+                    InventoryMovementModel.product_id == product.id,
+                    InventoryMovementModel.created_at >= start_dt,
+                    InventoryMovementModel.created_at <= end_dt,
+                )
+                .order_by(InventoryMovementModel.created_at.asc())
+                .all()
+            )
+
+            entries = 0
+            exits = 0
+            last_responsible = requested_by
+
+            for m in period_movements:
+                qty = int(m.quantity or 0)
+                if m.movement_type in positive_types:
+                    entries += qty
+                else:
+                    exits += qty
+
+                m_dict = m.to_dict()
+                if m_dict.get("user_name"):
+                    last_responsible = m_dict["user_name"]
+
+            if period_movements and period_movements[0].previous_stock is not None:
+                initial_stock = int(period_movements[0].previous_stock)
+            else:
+                initial_stock = final_stock - entries + exits
+
+            is_balanced = (initial_stock + entries - exits) == final_stock
+
+            items.append({
+                "product_id": product.id,
+                "product_name": product.name,
+                "initial_stock": initial_stock,
+                "entries": entries,
+                "exits": exits,
+                "final_stock": final_stock,
+                "responsible": last_responsible,
+                "is_balanced": is_balanced,
+            })
+
+        retention_until = now_utc.replace(year=now_utc.year + 5)
+
+        return {
+            "period": {
+                "start_date": start_str,
+                "end_date": end_str,
+            },
+            "generated_by": requested_by,
+            "generated_at": now_utc.isoformat() + "Z",
+            "retention_policy": {
+                "rule": "RN-027",
+                "retention_years": 5,
+                "retention_until": retention_until.strftime("%Y-%m-%d"),
+                "deletable": False,
+            },
+            "items": items,
+        }
 
     # ---------------------------------------------------------------------
     # Conteos Físicos y Auditorías (RF-024 a RF-027 / RN-022 a RN-025)
@@ -218,6 +394,7 @@ class InventoryService:
             )
 
             db.session.add(movement)
+            self._check_and_trigger_reorder(product, user_id=count_record.user_id or user_id)
             db.session.commit()
 
         return {
@@ -458,6 +635,8 @@ class InventoryService:
             )
 
             db.session.add(movement)
+
+            self._check_and_trigger_reorder(product, user_id=approver_id)
 
             loss_record.status = "Aprobado"
             loss_record.approved_by = approver_id

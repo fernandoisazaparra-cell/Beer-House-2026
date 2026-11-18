@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   getInventoryHistory,
+  getInventoryReport,
   getProducts,
   getStockAlerts,
   getSuppliers,
@@ -8,6 +9,7 @@ import {
   registerEntry,
   type DetailedStockAlert,
   type InventoryMovement,
+  type InventoryReportResponse,
 } from '../api/inventoryApi';
 import styles from './InventoryDashboard.module.css';
 
@@ -21,6 +23,15 @@ export const InventoryDashboard: React.FC = () => {
   // Estados de modales
   const [showEntryModal, setShowEntryModal] = useState<boolean>(false);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState<boolean>(false);
+
+  // Estados Reporte CP-019 / RF-029 / RI-029
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const firstDayMonthStr = `${todayStr.slice(0, 8)}01`;
+  const [startDate, setStartDate] = useState<string>(firstDayMonthStr);
+  const [endDate, setEndDate] = useState<string>(todayStr);
+  const [report, setReport] = useState<InventoryReportResponse | null>(null);
+  const [reportLoading, setReportLoading] = useState<boolean>(false);
+  const [reportError, setReportError] = useState<string>('');
 
   // Formularios
   const [entryForm, setEntryForm] = useState({
@@ -61,6 +72,26 @@ export const InventoryDashboard: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleGenerateReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReportError('');
+    if (startDate && endDate && startDate > endDate) {
+      setReportError('La fecha de inicio no puede ser mayor que la fecha fin.');
+      return;
+    }
+
+    try {
+      setReportLoading(true);
+      const data = await getInventoryReport(startDate, endDate);
+      setReport(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al generar el reporte.';
+      setReportError(message);
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   const handleCreateEntry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +139,7 @@ export const InventoryDashboard: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ paddingBottom: '90px' }}>
       <div className={styles.header}>
         <h1 className={styles.title}>Control de Inventario - Beer House 2026</h1>
         <div className={styles.headerActions}>
@@ -134,6 +165,149 @@ export const InventoryDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Reporte de Inventario por Periodo (CP-019 / RF-029 / RI-029) */}
+      <section className={styles.cardSection}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            marginBottom: '14px',
+          }}
+        >
+          <div>
+            <h2 className={styles.sectionTitle} style={{ marginBottom: '4px' }}>
+              Reporte de Inventario por Periodo (RF-029 / RI-029)
+            </h2>
+            <p style={{ margin: 0, fontSize: '12px', color: '#aaa' }}>
+              Balance del periodo: Stock Inicial + Entradas - Salidas = Stock Final
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleGenerateReport}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}
+          >
+            <label style={{ fontSize: '12px', color: '#ccc' }}>
+              Desde:{' '}
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className={styles.input}
+                style={{ width: 'auto', padding: '6px 10px' }}
+              />
+            </label>
+            <label style={{ fontSize: '12px', color: '#ccc' }}>
+              Hasta:{' '}
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className={styles.input}
+                style={{ width: 'auto', padding: '6px 10px' }}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={reportLoading}
+              className={styles.btnEntry}
+              style={{ backgroundColor: '#1565c0' }}
+            >
+              {reportLoading ? 'Generando...' : '📊 Generar Reporte'}
+            </button>
+          </form>
+        </div>
+
+        {reportError && <p className={styles.formError}>{reportError}</p>}
+
+        {report && (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+                fontSize: '12px',
+                color: '#bbb',
+                marginBottom: '12px',
+                padding: '8px 12px',
+                backgroundColor: '#1a1a1a',
+                borderRadius: '4px',
+                border: '1px solid #2c2c2c',
+              }}
+            >
+              <span>
+                <strong>Periodo:</strong> {report.period.start_date} al {report.period.end_date}
+              </span>
+              <span>
+                <strong>Responsable de emisión:</strong> {report.generated_by}
+              </span>
+              <span>
+                <strong>Generado:</strong> {new Date(report.generated_at).toLocaleString()}
+              </span>
+            </div>
+
+            {report.items.length === 0 ? (
+              <p className={styles.emptyOk}>No se encontraron registros para el periodo seleccionado.</p>
+            ) : (
+              <table className={styles.table}>
+                <thead>
+                  <tr className={styles.tableHeaderRow}>
+                    <th className={styles.tableHeaderCell}>Producto</th>
+                    <th className={styles.tableHeaderCell}>Stock Inicial</th>
+                    <th className={styles.tableHeaderCell}>Entradas</th>
+                    <th className={styles.tableHeaderCell}>Salidas</th>
+                    <th className={styles.tableHeaderCell}>Stock Final</th>
+                    <th className={styles.tableHeaderCell}>Responsable</th>
+                    <th className={styles.tableHeaderCell}>Cuadre (RI-029)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.items.map((row) => {
+                    const expectedFinal = row.initial_stock + row.entries - row.exits;
+                    const balanced = row.is_balanced && expectedFinal === row.final_stock;
+                    return (
+                      <tr key={row.product_id} className={styles.tableRow}>
+                        <td className={styles.tableCell} style={{ fontWeight: 'bold' }}>
+                          {row.product_name}
+                        </td>
+                        <td className={styles.tableCell}>{row.initial_stock}</td>
+                        <td className={styles.qtyEntry}>+{row.entries}</td>
+                        <td className={styles.qtyOut}>-{row.exits}</td>
+                        <td className={styles.tableCell} style={{ fontWeight: 'bold' }}>
+                          {row.final_stock}
+                        </td>
+                        <td className={styles.tableCell}>{row.responsible}</td>
+                        <td className={styles.tableCell}>
+                          <span
+                            style={{
+                              backgroundColor: balanced ? '#1b5e20' : '#b71c1c',
+                              color: '#fff',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            {balanced
+                              ? `✓ Cuadrado (${row.initial_stock}+${row.entries}-${row.exits}=${row.final_stock})`
+                              : '⚠ Descuadre'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* Alertas */}
       <section className={styles.cardSection}>

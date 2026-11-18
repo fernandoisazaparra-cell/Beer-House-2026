@@ -2,7 +2,7 @@
 export const API_URL =
     import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-
+// Rutas de la API
 export const API_ROUTES = {
     Auth: {
         Registre: '/auth/register',
@@ -23,6 +23,11 @@ export const API_ROUTES = {
     },
 };
 
+// Construir URL completa
 export const getApiUrl = (endpoint: string): string => {
-    return `${API_URL.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
+    const baseUrl = API_URL.replace(/\/+$/, '');
+    const path = endpoint.replace(/^\/+/, '');
+
+    return `${baseUrl}/${path}`;
 };
+

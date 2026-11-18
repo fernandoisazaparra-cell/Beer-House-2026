@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from app.extensions import db
@@ -48,6 +47,12 @@ class PurchaseOrderModel(db.Model):
         default=datetime.utcnow
     )
 
+    # RF-037: fecha estimada de entrega y forma de pago de la orden.
+    # Nullable para no afectar las órdenes ya existentes.
+    expected_date = db.Column(db.DateTime, nullable=True)
+
+    payment_method = db.Column(db.String(100), nullable=True)
+
     notes = db.Column(db.Text, nullable=True)
 
     supplier = db.relationship(
@@ -77,6 +82,11 @@ class PurchaseOrderModel(db.Model):
                 self.created_at.isoformat()
                 if self.created_at else None
             ),
+            "expected_date": (
+                self.expected_date.isoformat()
+                if self.expected_date else None
+            ),
+            "payment_method": self.payment_method,
             "notes": self.notes,
             "items": [
                 item.to_dict()

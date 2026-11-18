@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { getStockAlerts, type DetailedStockAlert } from "../features/inventory/api/inventoryApi";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from '@/app/context/authUse';
+import { useAuth } from "@/app/context/authUse";
+import { getStockAlerts, type DetailedStockAlert } from "../features/inventory/api/inventoryApi";
 
 interface Props {
   isOpen: boolean;
@@ -9,14 +9,24 @@ interface Props {
   onAlertsCountChange: (count: number) => void;
 }
 
-export const NotificationDrawer: React.FC<Props> = ({ isOpen, onClose, onAlertsCountChange }) => {
-  const [alerts, setAlerts] = useState<DetailedStockAlert[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export const NotificationDrawer: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  onAlertsCountChange,
+}) => {
+const [alerts, setAlerts] = useState<DetailedStockAlert[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { currentRole } = useAuth()
-  const canViewAlerts = ['admin', 'supervisor'].includes(currentRole)
+  const { currentRole } = useAuth();
+  const canViewAlerts = ["admin", "supervisor"].includes(currentRole);
 
   const loadAlerts = async () => {
+    if (!canViewAlerts) {
+      setAlerts([]);
+      onAlertsCountChange(0);
+      return;
+    }
+
     try {
       setLoading(true);
       const data = await getStockAlerts();
@@ -30,22 +40,25 @@ export const NotificationDrawer: React.FC<Props> = ({ isOpen, onClose, onAlertsC
     }
   };
 
-useEffect(() => {
+  useEffect(() => {
     if (!canViewAlerts) {
-        setAlerts([])
-        setLoading(false)
-        onAlertsCountChange(0)
-        return
+      setAlerts([]);
+      setLoading(false);
+      onAlertsCountChange(0);
+      return;
     }
 
-    loadAlerts()
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 60000);
+    return () => clearInterval(interval);
+  }, [canViewAlerts]);
 
-    const interval = setInterval(loadAlerts, 30000)
-
-    return () => clearInterval(interval)
-}, [canViewAlerts])
-
-if (!isOpen || !canViewAlerts) return null;
+  useEffect(() => {
+    if (isOpen && canViewAlerts) {
+      loadAlerts();
+    }
+  }, [isOpen]);
+  if (!isOpen || !canViewAlerts) return null;
 
   return (
     <div
@@ -76,11 +89,29 @@ if (!isOpen || !canViewAlerts) return null;
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Panel */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #333", paddingBottom: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #333",
+            paddingBottom: "12px",
+          }}
+        >
           <h2 style={{ fontSize: "18px", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
             🔔 Notificaciones ({alerts.length})
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#aaa", fontSize: "20px", cursor: "pointer" }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#aaa",
+              fontSize: "20px",
+              cursor: "pointer",
+            }}
+          >
             ✕
           </button>
         </div>
@@ -89,39 +120,44 @@ if (!isOpen || !canViewAlerts) return null;
         <div style={{ flex: 1, overflowY: "auto", marginTop: "15px" }}>
           {loading && <p style={{ color: "#aaa", fontSize: "13px" }}>Cargando notificaciones...</p>}
 
-          {!loading && alerts.map((item) => (
-            <div
-              key={item.product_id}
-              style={{
-                backgroundColor: "#2a2a2a",
-                borderLeft: `4px solid ${item.alert_level === "CRITICO" ? "#f44336" : "#ff9800"}`,
-                borderRadius: "4px",
-                padding: "12px",
-                marginBottom: "10px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                <strong style={{ fontSize: "14px" }}>{item.product_name}</strong>
-                <span
-                  style={{
-                    backgroundColor: item.alert_level === "CRITICO" ? "#c62828" : "#e65100",
-                    fontSize: "10px",
-                    padding: "2px 6px",
-                    borderRadius: "3px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {item.alert_level === "CRITICO" ? "AGOTADO" : "STOCK BAJO"}
-                </span>
+          {!loading &&
+            alerts.map((item) => (
+              <div
+                key={item.product_id}
+                style={{
+                  backgroundColor: "#2a2a2a",
+                  borderLeft: `4px solid ${item.alert_level === "CRITICO" ? "#f44336" : "#ff9800"}`,
+                  borderRadius: "4px",
+                  padding: "12px",
+                  marginBottom: "10px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <strong style={{ fontSize: "14px" }}>{item.product_name}</strong>
+                  <span
+                    style={{
+                      backgroundColor: item.alert_level === "CRITICO" ? "#c62828" : "#e65100",
+                      fontSize: "10px",
+                      padding: "2px 6px",
+                      borderRadius: "3px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {item.alert_level === "CRITICO" ? "AGOTADO" : "STOCK BAJO"}
+                  </span>
+                </div>
+                <p style={{ margin: "4px 0", fontSize: "12px", color: "#ccc" }}>
+                  Stock actual:{" "}
+                  <strong style={{ color: item.current_stock === 0 ? "#f44336" : "#ffb74d" }}>
+                    {item.current_stock} un.
+                  </strong>{" "}
+                  (Mínimo: {item.min_stock} un.)
+                </p>
+                <p style={{ margin: 0, fontSize: "11px", color: "#aaa" }}>
+                  Proveedor: {item.supplier_name}
+                </p>
               </div>
-              <p style={{ margin: "4px 0", fontSize: "12px", color: "#ccc" }}>
-                Stock actual: <strong style={{ color: item.current_stock === 0 ? "#f44336" : "#ffb74d" }}>{item.current_stock} un.</strong> (Mínimo: {item.min_stock} un.)
-              </p>
-              <p style={{ margin: 0, fontSize: "11px", color: "#aaa" }}>
-                Proveedor: {item.supplier_name}
-              </p>
-            </div>
-          ))}
+            ))}
 
           {!loading && alerts.length === 0 && (
             <div style={{ textAlign: "center", marginTop: "40px", color: "#81c784" }}>
@@ -134,6 +170,7 @@ if (!isOpen || !canViewAlerts) return null;
         {/* Botón para ir al módulo completo */}
         {alerts.length > 0 && (
           <button
+            type="button"
             onClick={() => {
               onClose();
               navigate("/dashboard/alertas-inventario");

@@ -13,7 +13,7 @@ service = InventoryService()
 
 
 # ---------------------------------------------------------------------
-# Movimientos y Ajustes Básicos
+# Movimientos, Ajustes y Reporte de Periodo (RF-025 / RF-026 / RF-029)
 # ---------------------------------------------------------------------
 @inventory_bp.post("/entries")
 @role_required(*STAFF_ROLES)  # RN-024
@@ -50,6 +50,24 @@ def get_history():
         return jsonify(history), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@inventory_bp.get("/report")
+@role_required(*STAFF_ROLES)
+def get_inventory_report():
+    try:
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        report = service.generate_inventory_report(
+            start_date=start_date,
+            end_date=end_date,
+            requested_by=current_user_name(),
+        )
+        return jsonify(report), 200
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Error al generar reporte de inventario: {str(e)}"}), 500
 
 
 # ---------------------------------------------------------------------

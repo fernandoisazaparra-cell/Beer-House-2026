@@ -7,12 +7,24 @@
 .main {
     display: flex;
     flex-direction: column;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin-left: var(--sidebar-width);
     margin-top: var(--header-height);
     height: calc(100vh - var(--header-height));
     width: calc(100vw - var(--sidebar-width));
     transition: var(--transition-normal);
+}
+
+.content {
+    flex: 1 0 auto;
+    width: 100%;
+    height: auto;
+}
+
+.main > footer {
+    flex-shrink: 0;
+    position: static !important;
 }
 
 .overlay {

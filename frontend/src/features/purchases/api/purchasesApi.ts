@@ -1,13 +1,18 @@
 import { authFetch } from "@/shared/lib/authFetch";
 import { API_URL } from "@/app/api";
 
-export const receivePurchaseOrder = async (orderId: number) => {
+export interface ReceivedItemPayload {
+  item_id: number;
+  quantity_received: number;
+}
+
+export const receivePurchaseOrder = async (orderId: number, receivedItems: ReceivedItemPayload[]) => {
   const response = await authFetch(`${API_URL}/purchases/orders/${orderId}/receive`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({}), // el usuario sale del token
+    body: JSON.stringify({ received_items: receivedItems }),
   });
 
   if (!response.ok) {
@@ -38,6 +43,7 @@ export const createPurchaseInvoice = async (invoiceData: any) => {
 
   return response.json();
 };
+
 export const payPurchaseInvoice = async (invoiceId: number, paymentData: { payment_method: string; payment_status: string }) => {
   const response = await authFetch(`${API_URL}/purchases/invoices/${invoiceId}/pay`, {
     method: "PUT",

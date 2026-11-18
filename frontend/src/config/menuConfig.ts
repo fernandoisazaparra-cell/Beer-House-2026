@@ -1,3 +1,12 @@
+// frontend/src/config/menuConfig.ts
+//
+// Configuración del menú lateral. Cada ítem indica qué roles lo ven.
+//
+// Secciones:
+//   1. Menú inicio       (público y clientes)
+//   2. Administración    (admin; Mermas también para supervisor)
+//   3. Supervisión       (supervisor; incluye Compras)
+
 import {
   IoIosHome,
   FaWineBottle,
@@ -12,8 +21,17 @@ import {
   FaShoppingCart,
 } from "@/ui/icons";
 
-import { FaBullhorn, FaHistory, FaTruck, FaUser } from "react-icons/fa";
-import { FaTrashAlt } from "react-icons/fa";
+import {
+  FaBullhorn,
+  FaHistory,
+  FaTrashAlt,
+  FaTruck,
+  FaUser,
+} from "react-icons/fa";
+
+// ==========================================
+// TIPOS
+// ==========================================
 
 export type userRol = "user" | "admin" | "supervisor" | "guest";
 
@@ -32,199 +50,89 @@ export interface MenuSection {
   items: NavItemType[];
 }
 
-export const menuConfig: MenuSection[] = [
-  {
-    title: "menu inicio",
-    items: [
-      {
-        path: "/",
-        icon: IoIosHome,
-        label: "Inicio",
-        rol: ["user", "admin", "guest"],
-      },
-      {
-        path: "/productos",
-        icon: FaWineBottle,
-        label: "Productos",
-        rol: ["user", "admin", "guest"],
-      },
-      {
-        path: "/carrito",
-        icon: FaShoppingCart,
-        label: "Carrito",
-        rol: ["user"],
-      },
-      // AGREGADO: Opción de Mi Perfil para usuarios autenticados
-      {
-        path: "/perfil",
-        icon: FaUser,
-        label: "Mi Perfil",
-        rol: ["user", "admin"],
-      },
-      {
-        path: "/perfil/historial-compras",
-        icon: FaHistory,
-        label: "Historial de compras",
-        rol: ["user"],
-      },
-    ],
-  },
-  {
-    title: "administración",
-    items: [
-      {
-        path: "/dashboard",
-        icon: MdDashboard,
-        label: "Dashboard",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/productos",
-        icon: AiOutlineProduct,
-        label: "Productos",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/categorias",
-        icon: BiCategory,
-        label: "Categorías",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/inventario",
-        icon: MdOutlineInventory,
-        label: "Inventario",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/conteos-fisicos",
-        icon: MdOutlineInventory,
-        label: "Conteos Físicos",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/alertas-inventario",
-        icon: MdOutlineInventory,
-        label: "Alertas de Stock",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/mermas",
-        label: "Mermas y Pérdidas",
-        icon: FaTrashAlt, // <-- Asigna aquí el icono deseado
-        rol: ["admin", "supervisor"],
-      },
+// ==========================================
+// ROLES (evita escribir los textos a mano)
+// ==========================================
 
-      // AGREGADO: Opción de Proveedores
-      {
-        path: "/dashboard/proveedores",
-        icon: FaTruck,
-        label: "Proveedores",
-        rol: ["admin"],
-      },
+const USER: userRol = "user";
+const ADMIN: userRol = "admin";
+const SUPERVISOR: userRol = "supervisor";
+const GUEST: userRol = "guest";
 
-      {
-        path: "/dashboard/clientes",
-        icon: RiCustomerService2Fill,
-        label: "Clientes",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/solicitudes-perfil",
-        icon: FaUser,
-        label: "Solicitudes Perfil",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/pedidos",
-        icon: BsBorderStyle,
-        label: "Pedidos",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/compras",
-        icon: FaShoppingCart,
-        label: "Compras",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/ventas",
-        icon: FcSalesPerformance,
-        label: "Ventas",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/promociones",
-        icon: FaTag,
-        label: "Promociones",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/campanas",
-        icon: FaBullhorn,
-        label: "Campañas",
-        rol: ["admin"],
-      },
-      // NUEVO: Enlace a la gestión de Marketing y Combos en el menú de Admin
-      {
-        path: "/dashboard/marketing-combos",
-        icon: FaBullhorn,
-        label: "Marketing y Combos",
-        rol: ["admin"],
-      },
-      {
-        path: "/dashboard/configuracion",
-        icon: MdDashboard,
-        label: "Configuración",
-        rol: ["admin"],
-      },
-    ],
-  },
-  {
-  title: "supervisión",
+// ==========================================
+// SECCIONES DEL MENÚ
+// ==========================================
+
+const homeSection: MenuSection = {
+  title: "menu inicio",
   items: [
+    { path: "/", icon: IoIosHome, label: "Inicio", rol: [USER, ADMIN, GUEST] },
+    { path: "/productos", icon: FaWineBottle, label: "Productos", rol: [USER, ADMIN, GUEST] },
+    { path: "/carrito", icon: FaShoppingCart, label: "Carrito", rol: [USER] },
+    { path: "/perfil", icon: FaUser, label: "Mi Perfil", rol: [USER, ADMIN] },
     {
-      path: "/dashboard",
-      icon: MdDashboard,
-      label: "Dashboard",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/inventario",
-      icon: MdOutlineInventory,
-      label: "Inventario",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/conteos-fisicos",
-      icon: MdOutlineInventory,
-      label: "Conteos Físicos",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/alertas-inventario",
-      icon: MdOutlineInventory,
-      label: "Alertas de Stock",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/mermas",
-      icon: FaTrashAlt,
-      label: "Mermas y Pérdidas",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/productos",
-      icon: AiOutlineProduct,
-      label: "Productos",
-      rol: ["supervisor"],
-    },
-    {
-      path: "/dashboard/reportes",
-      icon: FcSalesPerformance,
-      label: "Reportes",
-      rol: ["supervisor"],
+      path: "/perfil/historial-compras",
+      icon: FaHistory,
+      label: "Historial de compras",
+      rol: [USER],
     },
   ],
-},
+};
+
+const adminSection: MenuSection = {
+  title: "administración",
+  items: [
+    // --- Panel y catálogo ---
+    { path: "/dashboard", icon: MdDashboard, label: "Dashboard", rol: [ADMIN] },
+    { path: "/dashboard/productos", icon: AiOutlineProduct, label: "Productos", rol: [ADMIN] },
+    { path: "/dashboard/categorias", icon: BiCategory, label: "Categorías", rol: [ADMIN] },
+
+    // --- Inventario ---
+    { path: "/dashboard/inventario", icon: MdOutlineInventory, label: "Inventario", rol: [ADMIN] },
+    { path: "/dashboard/conteos-fisicos", icon: MdOutlineInventory, label: "Conteos Físicos", rol: [ADMIN] },
+    { path: "/dashboard/alertas-inventario", icon: MdOutlineInventory, label: "Alertas de Stock", rol: [ADMIN] },
+    { path: "/dashboard/mermas", icon: FaTrashAlt, label: "Mermas y Pérdidas", rol: [ADMIN, SUPERVISOR] },
+
+    // --- Proveedores y clientes ---
+    { path: "/dashboard/proveedores", icon: FaTruck, label: "Proveedores", rol: [ADMIN] },
+    { path: "/dashboard/clientes", icon: RiCustomerService2Fill, label: "Clientes", rol: [ADMIN] },
+    { path: "/dashboard/solicitudes-perfil", icon: FaUser, label: "Solicitudes Perfil", rol: [ADMIN] },
+
+    // --- Pedidos, compras y ventas ---
+    { path: "/dashboard/pedidos", icon: BsBorderStyle, label: "Pedidos", rol: [ADMIN] },
+    { path: "/dashboard/compras", icon: FaShoppingCart, label: "Compras", rol: [ADMIN] },
+    { path: "/dashboard/ventas", icon: FcSalesPerformance, label: "Ventas", rol: [ADMIN] },
+
+    // --- Marketing ---
+    { path: "/dashboard/promociones", icon: FaTag, label: "Promociones", rol: [ADMIN] },
+    { path: "/dashboard/campanas", icon: FaBullhorn, label: "Campañas", rol: [ADMIN] },
+    { path: "/dashboard/marketing-combos", icon: FaBullhorn, label: "Marketing y Combos", rol: [ADMIN] },
+
+    // --- Sistema ---
+    { path: "/dashboard/configuracion", icon: MdDashboard, label: "Configuración", rol: [ADMIN] },
+  ],
+};
+
+const supervisorSection: MenuSection = {
+  title: "supervisión",
+  items: [
+    { path: "/dashboard", icon: MdDashboard, label: "Dashboard", rol: [SUPERVISOR] },
+    { path: "/dashboard/inventario", icon: MdOutlineInventory, label: "Inventario", rol: [SUPERVISOR] },
+    { path: "/dashboard/conteos-fisicos", icon: MdOutlineInventory, label: "Conteos Físicos", rol: [SUPERVISOR] },
+    { path: "/dashboard/alertas-inventario", icon: MdOutlineInventory, label: "Alertas de Stock", rol: [SUPERVISOR] },
+    { path: "/dashboard/mermas", icon: FaTrashAlt, label: "Mermas y Pérdidas", rol: [SUPERVISOR] },
+    { path: "/dashboard/productos", icon: AiOutlineProduct, label: "Productos", rol: [SUPERVISOR] },
+    { path: "/dashboard/reportes", icon: FcSalesPerformance, label: "Reportes", rol: [SUPERVISOR] },
+    { path: "/dashboard/compras", icon: FaShoppingCart, label: "Compras", rol: [SUPERVISOR] },
+  ],
+};
+
+// ==========================================
+// MENÚ FINAL (el orden define el orden en pantalla)
+// ==========================================
+
+export const menuConfig: MenuSection[] = [
+  homeSection,
+  adminSection,
+  supervisorSection,
 ];

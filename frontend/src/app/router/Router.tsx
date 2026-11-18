@@ -1,22 +1,18 @@
 import { Route, Routes } from "react-router-dom";
+import type { ReactNode } from "react";
 import { AuthRoutesPublic } from "./";
 
-// Importación de ProtectedRoute
 import { ProtectedRoute } from "./pages/ProtectedRoute";
 import { useAuth } from "@/app/context/authUse";
 
-// Páginas Públicas y Layout
+// Páginas públicas y layout
 import { Home, ProductsPage, MainLayout } from "@/pages";
 import { ProductDetailPage } from "@/pages/Products/ProductDetailPage";
-// Importación de la página de Perfil
 import { ProfilePage } from "@/pages/auth/ProfilePage";
-
-// Carrito
 import CarritoPage from "@/pages/Carrito/CarritoPage";
+import PurchaseHistory from "@/features/sales/components/PurchaseHistory";
 
-// Catálogo Visual (Nuevo)
-
-// Dashboard y Vistas Administrativas
+// Dashboard y vistas administrativas
 import Dashboard from "@/pages/Dashboard/Dashboard";
 import PedidosAdmin from "@/pages/Dashboard/PedidosAdmin";
 import ProductosAdmin from "@/pages/Dashboard/ProductosAdmin";
@@ -26,21 +22,32 @@ import VentasAdmin from "@/pages/Dashboard/VentasAdmin";
 import PromocionesAdmin from "@/pages/Dashboard/PromocionesAdmin";
 import ProveedoresAdmin from "@/pages/Dashboard/ProveedoresAdmin";
 import ComprasAdmin from "@/pages/Dashboard/ComprasAdmin";
-import PurchaseHistory from "@/features/sales/components/PurchaseHistory";
+import { ProfileRequestsAdmin } from "@/pages/Dashboard/ProfileRequestsAdmin";
 
-// Marketing y Combos Admin (Nuevo)
+// Marketing y combos
 import { MarketingCombosPage } from "@/pages/admin/MarketingCombosPage";
 import CampaignsAdmin from "@/pages/admin/CampaignsAdmin";
-// Módulos de Inventario
+
+// Módulos de inventario
 import InventoryPage from "./pages/InventoryPage";
 import { PhysicalCountsDashboard } from "@/pages/Dashboard/PhysicalCountsDashboard";
 import { StockAlertsDashboard } from "@/pages/Dashboard/StockAlertsDashboard";
 import { LossesDashboard } from "@/pages/Dashboard/LossesDashboard";
-import { ProfileRequestsAdmin } from "@/pages/Dashboard/ProfileRequestsAdmin";
-// import { HistorialCompras } from "@/components/HistorialCompras";
+
+// ==========================================
+// ROLES POR TIPO DE ACCESO
+// ==========================================
+
+const CLIENT_ROLES = ["cliente", "user"];
+const ADMIN_ONLY = ["admin"];
+const ADMIN_AND_SUPERVISOR = ["admin", "supervisor"];
+
+/** Envuelve una página con la protección por roles. */
+const guard = (roles: string[], page: ReactNode) => (
+  <ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>
+);
 
 export const AppRoutes = () => {
-  // Obtenemos los datos del usuario guardados en la sesión/localStorage
   const { user } = useAuth();
 
   const currentUser = user
@@ -58,29 +65,21 @@ export const AppRoutes = () => {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        {/* Rutas Públicas */}
+        {/* ---------- Públicas ---------- */}
         <Route index element={<Home />} />
+        {AuthRoutesPublic}
+
+        {/* ---------- Con sesión (cualquier rol) ---------- */}
         {/* Catálogo (RF-021 / RN-020): solo con sesión; la edad la valida el backend */}
         <Route
           path="productos"
-          element={
-            <ProtectedRoute>
-              <ProductsPage />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><ProductsPage /></ProtectedRoute>}
         />
         <Route
           path="productos/:id"
-          element={
-            <ProtectedRoute>
-              <ProductDetailPage />
-            </ProtectedRoute>
-          }
-
+          element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>}
         />
-        {AuthRoutesPublic}
-
-        {/* Ruta del Perfil (RF-002 / RN-002): Protegida para cualquier usuario autenticado */}
+        {/* Perfil (RF-002 / RN-002) */}
         <Route
           path="perfil"
           element={
@@ -89,86 +88,42 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        {/* <Route path="perfil/historial-compras" element={<HistorialCompras />} /> */}
+
+        {/* ---------- Solo clientes ---------- */}
         <Route
           path="perfil/historial-compras"
-          element={
-            <ProtectedRoute allowedRoles={["cliente", "user"]}>
-              <PurchaseHistory />
-            </ProtectedRoute>
-          }
+          element={guard(CLIENT_ROLES, <PurchaseHistory />)}
         />
-
-        {/* Ruta del Carrito: Protegida únicamente para Clientes */}
         <Route
           path="carrito"
-          element={
-            <ProtectedRoute allowedRoles={["cliente", "user"]}>
-              <CarritoPage />
-            </ProtectedRoute>
-          }
+          element={guard(CLIENT_ROLES, <CarritoPage />)}
         />
 
-        {/* Rutas del Dashboard: Protegidas para Administrador y Supervisor */}
+        {/* ---------- Dashboard (admin y supervisor) ---------- */}
         <Route
           path="dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-              <Dashboard />
-            </ProtectedRoute>
-          }
+          element={guard(ADMIN_AND_SUPERVISOR, <Dashboard />)}
         >
-          <Route path="pedidos" element={<PedidosAdmin />} />
-          <Route
-            path="productos"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-                <ProductosAdmin />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="categorias" element={<CategoriasAdmin />} />
-          <Route
-            path="inventario"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-                <InventoryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="conteos-fisicos"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-                <PhysicalCountsDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="alertas-inventario"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-                <StockAlertsDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="mermas"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
-                <LossesDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="proveedores" element={<ProveedoresAdmin />} />
-          <Route path="clientes" element={<ClientesAdmin />} />
-          <Route path="ventas" element={<VentasAdmin />} />
-          <Route path="promociones" element={<PromocionesAdmin />} />
-          {/* NUEVO: Gestión de Marketing y Combos en el Dashboard */}
-          <Route path="marketing-combos" element={<MarketingCombosPage />} />
-          <Route path="campanas" element={<CampaignsAdmin />} />
-          <Route path="compras" element={<ComprasAdmin />} />
-          <Route path="solicitudes-perfil" element={<ProfileRequestsAdmin />} />
+          {/* Inventario y productos: admin y supervisor */}
+          <Route path="productos" element={guard(ADMIN_AND_SUPERVISOR, <ProductosAdmin />)} />
+          <Route path="inventario" element={guard(ADMIN_AND_SUPERVISOR, <InventoryPage />)} />
+          <Route path="conteos-fisicos" element={guard(ADMIN_AND_SUPERVISOR, <PhysicalCountsDashboard />)} />
+          <Route path="alertas-inventario" element={guard(ADMIN_AND_SUPERVISOR, <StockAlertsDashboard />)} />
+          <Route path="mermas" element={guard(ADMIN_AND_SUPERVISOR, <LossesDashboard />)} />
+
+          {/* Compras: admin y supervisor (RN-035) */}
+          <Route path="compras" element={guard(ADMIN_AND_SUPERVISOR, <ComprasAdmin />)} />
+
+          {/* Resto del panel: solo administrador */}
+          <Route path="categorias" element={guard(ADMIN_ONLY, <CategoriasAdmin />)} />
+          <Route path="pedidos" element={guard(ADMIN_ONLY, <PedidosAdmin />)} />
+          <Route path="proveedores" element={guard(ADMIN_ONLY, <ProveedoresAdmin />)} />
+          <Route path="clientes" element={guard(ADMIN_ONLY, <ClientesAdmin />)} />
+          <Route path="ventas" element={guard(ADMIN_ONLY, <VentasAdmin />)} />
+          <Route path="promociones" element={guard(ADMIN_ONLY, <PromocionesAdmin />)} />
+          <Route path="marketing-combos" element={guard(ADMIN_ONLY, <MarketingCombosPage />)} />
+          <Route path="campanas" element={guard(ADMIN_ONLY, <CampaignsAdmin />)} />
+          <Route path="solicitudes-perfil" element={guard(ADMIN_ONLY, <ProfileRequestsAdmin />)} />
         </Route>
       </Route>
     </Routes>

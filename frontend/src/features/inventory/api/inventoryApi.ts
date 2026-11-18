@@ -288,3 +288,58 @@ export const processLossApproval = async (
   }
   return res.json();
 };
+
+// =====================================================================
+// Compatibilidad con módulos que aún usan los nombres anteriores
+// =====================================================================
+
+export interface InventoryReportRow {
+  product_id: number;
+  product_name: string;
+  initial_stock: number;
+  entries: number;
+  exits: number;
+  final_stock: number;
+  responsible: string;
+  is_balanced: boolean;
+}
+
+export interface InventoryReportResponse {
+  period: {
+    start_date: string;
+    end_date: string;
+  };
+  generated_by: string;
+  generated_at: string;
+  items: InventoryReportRow[];
+}
+
+export interface PhysicalCountData {
+  product_id: number;
+  physical_stock: number;
+  signed_act_url?: string;
+}
+
+export const getReorderSuggestions = generateReorderSuggestions;
+export const applyPhysicalCountAdjustment = applyStockAdjustment;
+export const registerPhysicalCount = createPhysicalCount;
+export const registerLossRecord = createLossRecord;
+export const getLossRecordsHistory = getLossRecords;
+export const getPhysicalCountsHistory = getPhysicalCounts;
+
+export const getInventoryReport = async (
+  startDate?: string,
+  endDate?: string,
+): Promise<InventoryReportResponse> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append("start_date", startDate);
+  if (endDate) params.append("end_date", endDate);
+  const query = params.toString() ? `?${params.toString()}` : "";
+
+  const res = await authFetch(`${API_URL}/inventory/report${query}`);
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(body.error || "Error al generar el reporte de inventario.");
+  }
+  return body;
+};

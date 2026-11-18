@@ -1,7 +1,8 @@
 import { API_ROUTES, getApiUrl } from "@/app/api";
 
+
 // =====================================================
-// TIPOS
+// 1. TIPOS E INTERFACES
 // =====================================================
 
 export interface RegisterData {
@@ -13,6 +14,7 @@ export interface RegisterData {
   terms: boolean;
   years: boolean;
 }
+
 export interface VerifyEmailData {
   email: string;
   code: string;
@@ -38,17 +40,6 @@ export interface LoginResponse {
 
 export type CurrentUserResponse = LoginResponse["user"];
 
-export const getCurrentUser = async (
-  token: string,
-): Promise<CurrentUserResponse> => {
-  return apiRequest<CurrentUserResponse>(getApiUrl(API_ROUTES.Auth.Me), {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
-
 export interface RegisterResponse {
   message?: string;
   codigo?: string;
@@ -61,7 +52,7 @@ export interface ApiErrorResponse {
 }
 
 // =====================================================
-// ERROR PERSONALIZADO
+// 2. ERROR PERSONALIZADO
 // =====================================================
 
 export class ApiError extends Error {
@@ -81,7 +72,7 @@ export class ApiError extends Error {
 }
 
 // =====================================================
-// FUNCIÓN CENTRAL DE PETICIONES
+// 3. FUNCIÓN CENTRAL DE PETICIONES (API REQUEST)
 // =====================================================
 
 const apiRequest = async <T>(url: string, options: RequestInit): Promise<T> => {
@@ -111,7 +102,7 @@ const apiRequest = async <T>(url: string, options: RequestInit): Promise<T> => {
 };
 
 // =====================================================
-// REGISTRO
+// 4. MÉTODOS DE AUTENTICACIÓN Y USUARIOS
 // =====================================================
 
 export const registreUser = async (
@@ -126,10 +117,6 @@ export const registreUser = async (
   });
 };
 
-// =====================================================
-// LOGIN
-// =====================================================
-
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   return apiRequest<LoginResponse>(getApiUrl(API_ROUTES.Auth.Login), {
     method: "POST",
@@ -139,10 +126,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     body: JSON.stringify(data),
   });
 };
-
-// =====================================================
-// VERIFICACIÓN DE EMAIL
-// =====================================================
 
 export const verifyEmail = async (data: VerifyEmailData) => {
   return apiRequest(getApiUrl(API_ROUTES.Auth.VerifyEmail), {
@@ -154,10 +137,6 @@ export const verifyEmail = async (data: VerifyEmailData) => {
   });
 };
 
-// =====================================================
-// REENVÍO DE CÓDIGO
-// =====================================================
-
 export const RepeatToken = async (email: string) => {
   return apiRequest(getApiUrl(API_ROUTES.Auth.TokenRepeat), {
     method: "POST",
@@ -167,10 +146,6 @@ export const RepeatToken = async (email: string) => {
     body: JSON.stringify({ email }),
   });
 };
-
-// =====================================================
-// LOGIN CON GOOGLE
-// =====================================================
 
 export const loginGoogle = async (code: string): Promise<LoginResponse> => {
   return apiRequest<LoginResponse>(getApiUrl(API_ROUTES.Auth.TokenGoogle), {
@@ -182,10 +157,6 @@ export const loginGoogle = async (code: string): Promise<LoginResponse> => {
   });
 };
 
-// =====================================================
-// CONFIRMACIÓN DE TÉRMINOS
-// =====================================================
-
 export const confirmTerms = async (token: string, termsVersion = "v1.0") => {
   return apiRequest(getApiUrl(API_ROUTES.Auth.ConfirmTerms), {
     method: "POST",
@@ -196,5 +167,16 @@ export const confirmTerms = async (token: string, termsVersion = "v1.0") => {
     body: JSON.stringify({
       terms_version: termsVersion,
     }),
+  });
+};
+
+export const getCurrentUser = async (
+  token: string,
+): Promise<CurrentUserResponse> => {
+  return apiRequest<CurrentUserResponse>(getApiUrl(API_ROUTES.Auth.Me), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 };

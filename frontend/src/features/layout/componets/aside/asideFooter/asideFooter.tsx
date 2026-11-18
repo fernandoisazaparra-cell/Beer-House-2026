@@ -45,13 +45,13 @@ export const AsideFooter = () => {
         {
             title: "login",
             items: [
-                { action: (logout), icon: IoIosExit, label: 'Cerrar seccion', rol: ['user', 'admin'] },
+                { action: (logout), icon: IoIosExit, label: 'Cerrar sesion', rol: ['user', 'admin'] },
             ]
         },
         {
             title: "noLogin",
             items: [
-                { action: (() => navigate(API_ROUTES.Auth.Registre)), icon: FaUser, label: 'Iniciar seccion', rol: ['user', 'admin'] },
+                { action: (() => navigate(API_ROUTES.Auth.Registre)), icon: FaUser, label: 'Iniciar sesion', rol: ['user', 'admin'] },
             ]
         }
     ]
