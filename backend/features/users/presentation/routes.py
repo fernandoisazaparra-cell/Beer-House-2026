@@ -2,14 +2,14 @@
 Rutas de autenticación y gestión de usuarios (capa HTTP)
 
 Secciones:
-    1. Imports y configuración
-    2. Helpers
-    3. Registro y verificación de correo
-    4. Login (correo y Google)
-    5. Sesión y términos
-    6. Perfil del usuario
-    7. Administración de solicitudes de perfil
-    8. CRUD de usuarios (panel admin)
+1. Imports y configuración
+2. Helpers
+3. Registro y verificación de correo
+4. Login (correo y Google)
+5. Sesión y términos
+6. Perfil del usuario
+7. Administración de solicitudes de perfil
+8. CRUD de usuarios (panel admin)
 """
 
 # ==========================================
@@ -112,12 +112,17 @@ def register():
         return {"errors": errores_pydantic(error)}, 400
 
     service = UserService()
+    
+    # Capturar birth_date tanto del esquema de Pydantic como del data crudo
+    birth_date = getattr(schema, "birth_date", data.get("birth_date"))
+
     codigo, errores = service.register(
         schema.name,
         schema.email,
         schema.password,
         schema.terms,
         schema.years,
+        birth_date=birth_date,  # <--- Integración de la fecha de nacimiento
     )
     if errores:
         return {"errors": errores}, 400
@@ -203,9 +208,6 @@ def login():
     return resultado, 200
 
 
-# NOTA: el orden de estos decoradores se dejó igual que el original.
-# Con @limiter.limit encima de @auth_bp.post, el límite probablemente
-# NO se aplica. Para activarlo, invertir el orden.
 @limiter.limit("10 per minute")
 @auth_bp.post("/token-google")
 def login_google():
@@ -362,7 +364,6 @@ def update_profile():
     )
     dias_antiguedad = (ahora_utc() - fecha_registro).days if fecha_registro else 0
 
-    # Cuentas con menos de 30 días: el cambio queda pendiente de aprobación
     if dias_antiguedad < 30:
         nueva_solicitud = ProfileUpdateRequest(
             user_id=user.id,

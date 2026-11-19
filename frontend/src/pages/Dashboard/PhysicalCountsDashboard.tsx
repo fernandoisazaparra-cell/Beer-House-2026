@@ -53,7 +53,7 @@ export const PhysicalCountsDashboard: React.FC = () => {
     }
 
     try {
-      await applyStockAdjustment(count.id, "Supervisor", "Usuario Sistema");
+      await applyStockAdjustment(count.id);
       alert("Ajuste aplicado correctamente al stock real.");
       loadData();
     } catch (err: any) {

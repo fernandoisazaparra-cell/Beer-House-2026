@@ -43,6 +43,7 @@ export const useRegistreForm = () => {
       last_name: lastName,
       email: String(formData.get("email") ?? "").trim(),
       password: String(formData.get("password") ?? ""),
+      birth_date: String(formData.get("birth_date") ?? ""),
       terms,
       years,
     };

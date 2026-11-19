@@ -51,7 +51,6 @@ export const LossesDashboard: React.FC = () => {
         product_id: Number(selectedProductId),
         quantity: Number(quantity),
         reason: reason.trim(),
-        user_id: 1, // ID de usuario según contexto de sesión
       });
       alert("Solicitud de merma registrada exitosamente en estado Pendiente.");
       setIsModalOpen(false);
@@ -72,7 +71,7 @@ export const LossesDashboard: React.FC = () => {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      await processLossApproval(lossId, action, "Supervisor");
+      await processLossApproval(lossId, action);
       alert(`Merma #${lossId} procesada correctamente (${action}).`);
       loadData();
     } catch (err: any) {

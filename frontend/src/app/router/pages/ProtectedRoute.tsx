@@ -29,9 +29,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/auth/login" replace />;
     }
 
-    // Exigir confirmación de términos.
+    // Exigir confirmación de términos: el modal global (TermsConfirmationGate)
+    // se encarga de mostrarla, así que no se navega a una ruta inexistente.
     if (needsTermsConfirmation) {
-        return <Navigate to="/auth/confirm-terms" replace />;
+        return <Navigate to="/" replace />;
     }
 
     // Comprobar permisos.

@@ -156,7 +156,7 @@ export const useAuthState = () => {
     setNeedsTermsConfirmation(result.requires_confirmation ?? false);
 
     if (result.requires_confirmation) {
-      navigate("/auth/confirm-terms");
+      navigate("/");
     } else {
       navigate("/");
     }
@@ -176,7 +176,7 @@ export const useAuthState = () => {
     setNeedsTermsConfirmation(requiresConfirmation);
 
     if (requiresConfirmation) {
-      navigate("/auth/confirm-terms");
+      navigate("/");
     } else {
       navigate("/");
     }

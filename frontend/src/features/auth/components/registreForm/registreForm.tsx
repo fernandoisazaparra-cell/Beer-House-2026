@@ -96,6 +96,13 @@ export const RegistreForm = () => {
                         error={getFieldError('password')}
                         autoComplete='new-password'
                     />
+                    <FormField
+                        label='Fecha de Nacimiento'
+                        name='birth_date'
+                        type='date'
+                        error={getFieldError('birth_date')}
+                        autoComplete='off'
+                    />
 
                     <FormCheckbox
                         name="terms"

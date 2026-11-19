@@ -4,10 +4,8 @@
 # Un "servicio" coordina: validar datos (validators) + hablar con la
 # base de datos (repository). No sabe nada de HTTP ni de Flask.
 # =====================================================================
-# =====================================================================
-# Lógica de negocio del usuario (registro + verificación por email + CRUD Admin)
-# =====================================================================
 
+from datetime import datetime, date
 from werkzeug.security import (
     check_password_hash,
     generate_password_hash
@@ -29,9 +27,10 @@ class UserService:
     def __init__(self):
         self.repository = SQLAlchemyUserRepository()
 
-    def register(self, name, email, password, terms, years):
+    def register(self, name, email, password, terms, years, birth_date=None):
         """
-        Crea o actualiza un registro pendiente de verificación.
+        Crea o actualiza un registro pendiente de verificación,
+        incluyendo la validación obligatoria de mayoría de edad (RN-001).
 
         Devuelve:
             (codigo, errores)
@@ -43,6 +42,27 @@ class UserService:
             Diccionario de errores o None si el registro fue correcto.
         """
 
+        fecha_nac = None
+
+        # 1. Validación de la fecha de nacimiento exacta (Casos CP-003, CP-004, CP-005)
+        if birth_date:
+            try:
+                fecha_nac = datetime.strptime(str(birth_date), "%Y-%m-%d").date()
+            except ValueError:
+                return None, {
+                    "birth_date": ["El formato de la fecha debe ser AAAA-MM-DD."]
+                }
+
+            hoy = date.today()
+            # Cálculo exacto de la edad
+            edad = hoy.year - fecha_nac.year - ((hoy.month, hoy.day) < (fecha_nac.month, fecha_nac.day))
+
+            if edad < 18:
+                return None, {
+                    "birth_date": ["Debes ser mayor de 18 años para registrarte en Beer House."]
+                }
+
+        # 2. Validación estándar de los demás campos (incluyendo el check de `years`)
         datos, errores = validar_usuario_original(
             name,
             email,
@@ -83,11 +103,13 @@ class UserService:
                     password=password_hash
                 )
             else:
+                # Se incluye birth_date para almacenarlo en el registro pendiente
                 codigo = self.repository.create_pending(
                     first_name,
                     last_name,
                     email,
-                    password_hash
+                    password_hash,
+                    birth_date=fecha_nac
                 )
 
         except ValueError as error:
@@ -146,8 +168,8 @@ class UserService:
                 ]
             }
 
-        # Este método debe crear el usuario y eliminar el pendiente
-        # dentro de una única transacción.
+        # Este método crea el usuario definitivo y elimina el pendiente
+        # dentro de una única transacción (pasando también la birth_date).
         self.repository.confirm_pending_registration(pendiente)
 
         return None

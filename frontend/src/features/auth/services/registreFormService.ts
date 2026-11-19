@@ -11,6 +11,7 @@ export interface RegisterData {
   last_name: string;
   email: string;
   password: string;
+  birth_date: string;
   terms: boolean;
   years: boolean;
 }
