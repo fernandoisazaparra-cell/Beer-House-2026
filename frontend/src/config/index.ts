@@ -1,6 +1,7 @@
-export { 
+export {
     menuConfig,
-    type MenuSection, 
+    MENU_GROUPS,
+    type MenuSection,
     type NavItemType,
     type userRol
 } from './menuConfig'

@@ -58,7 +58,6 @@ class Config:
             f"{DB_HOST}:{DB_PORT}/"
             f"{DB_NAME}?charset=utf8mb4"
         )
-        main
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
