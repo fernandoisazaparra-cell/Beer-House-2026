@@ -51,16 +51,27 @@ export const Header = () => {
 
   // Checkout: valida el carrito con el backend (RN-012 y RN-018)
   const handleCheckout = async () => {
-    const validationResult = await validateCartWithBackend(cart);
+    try {
+      const validationResult = await validateCartWithBackend(cart);
 
-    if (!validationResult.success) {
-      alert(
-        "Atención: Hay cambios en los productos (Stock o Estado Inactivo). Revisa tu carrito.",
-      );
-      return;
+      if (!validationResult.success) {
+        const details = (validationResult.issues || [])
+          .map((issue) => issue.message)
+          .filter(Boolean)
+          .join("\n");
+        alert(
+          `Revisa tu carrito (stock o estado de los productos):\n${details || "Hay cambios en los productos."}`
+        );
+        setIsCartOpen(false);
+        navigate("/carrito");
+        return;
+      }
+
+      setIsCartOpen(false);
+      navigate("/carrito");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "No se pudo validar el carrito.");
     }
-
-    alert("¡Todo en orden! Redirigiendo a pasarela de pagos...");
   };
 
   return (

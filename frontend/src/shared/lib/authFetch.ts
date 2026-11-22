@@ -10,7 +10,7 @@ export const getToken = (): string | null => {
 };
 
 
-export const authFetch = (
+export const authFetch = async (
     input: RequestInfo | URL,
     init: RequestInit = {}
 ): Promise<Response> => {
@@ -22,10 +22,23 @@ export const authFetch = (
         headers.set("Authorization", `Bearer ${token}`);
     }
 
-    return fetch(input, {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const response = await fetch(input, {
         ...init,
         headers
     });
+
+    // RF-021: un token vencido o revocado debe cerrar la sesión y llevar al login.
+    if (response.status === 401 && token && !url.includes("/auth/login")) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+        if (!window.location.pathname.startsWith("/auth/")) {
+            window.location.assign("/auth/login");
+        }
+    }
+
+    return response;
 };
 
 

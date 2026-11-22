@@ -18,6 +18,8 @@ import { API_ROUTES } from '@/app/api'
 import { useRegistreForm } from '@/features/auth/hooks'
 
 export const RegistreForm = () => {
+    const maxBirthDate = new Date().toISOString().slice(0, 10);
+
     const {
         terms,
         setTerms,
@@ -100,6 +102,8 @@ export const RegistreForm = () => {
                         label='Fecha de Nacimiento'
                         name='birth_date'
                         type='date'
+                        max={maxBirthDate}
+                        required
                         error={getFieldError('birth_date')}
                         autoComplete='off'
                     />

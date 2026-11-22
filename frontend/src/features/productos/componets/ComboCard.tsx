@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { formatCurrency } from '@/shared/utils/formatCurrency';
+import { DEFAULT_LEGAL_WARNING } from '../catalog.types';
 import type { Combo } from '../combos.types';
 
 interface ComboCardProps {
@@ -85,7 +86,7 @@ export const ComboCard: React.FC<ComboCardProps> = ({ combo }) => {
           border: '1px solid rgba(248, 113, 113, 0.2)',
         }}
       >
-        Información académica. Prohibida la venta de alcohol a menores de 18 años.
+        {DEFAULT_LEGAL_WARNING}
       </div>
     </div>
   );

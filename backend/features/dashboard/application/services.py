@@ -1,10 +1,12 @@
 
-from datetime import datetime
+from datetime import datetime, date
+
+from sqlalchemy import func
 
 from app.extensions import db
 from features.products.infrastructure.models import ProductModel
 from features.users.infrastructure.models import UserModel
-from features.sales.infrastructure.models import SaleModel
+from features.sales.infrastructure.models import SaleModel, SaleItemModel
 from features.inventory.infrastructure.models import (
     LossRecordModel,
     PhysicalCountModel,
@@ -80,6 +82,78 @@ class DashboardService:
                     "min_stock": product.min_stock,
                 }
                 for product in low_stock
+            ],
+        }
+
+    # -----------------------------------------------------------------
+    # RF-047 / RI-047 / RN-044: reporte de ventas por producto.
+    # Solo ventas pagadas, dentro de un periodo, con nº de clientes distinto.
+    # -----------------------------------------------------------------
+    def get_sales_by_product(self, date_from=None, date_to=None):
+        def parsear(valor, nombre):
+            if not valor:
+                return None
+            try:
+                return datetime.combine(
+                    date.fromisoformat(str(valor)), datetime.min.time()
+                )
+            except ValueError:
+                raise ValueError(f"{nombre} debe tener formato AAAA-MM-DD.") from None
+
+        inicio = parsear(date_from, "date_from")
+        fin = parsear(date_to, "date_to")
+
+        if inicio and fin and fin < inicio:
+            raise ValueError("date_to no puede ser anterior a date_from.")
+
+        consulta = (
+            db.session.query(
+                SaleItemModel.product_id,
+                SaleItemModel.product_name,
+                func.sum(SaleItemModel.quantity).label("quantity"),
+                func.count(func.distinct(SaleModel.user_id)).label("clients"),
+                func.sum(SaleItemModel.subtotal).label("revenue"),
+            )
+            .join(SaleModel, SaleItemModel.sale_id == SaleModel.id)
+            .filter(SaleModel.status == "PAID")
+        )
+
+        if inicio:
+            consulta = consulta.filter(
+                func.coalesce(SaleModel.paid_at, SaleModel.created_at) >= inicio
+            )
+        if fin:
+            consulta = consulta.filter(
+                func.coalesce(SaleModel.paid_at, SaleModel.created_at) < fin.replace(
+                    hour=23, minute=59, second=59, microsecond=999999
+                )
+            )
+
+        filas = (
+            consulta.group_by(
+                SaleItemModel.product_id, SaleItemModel.product_name
+            )
+            .order_by(func.sum(SaleItemModel.quantity).desc())
+            .all()
+        )
+
+        periodo = (
+            f"{inicio.date().isoformat() if inicio else 'inicio'} / "
+            f"{fin.date().isoformat() if fin else 'hoy'}"
+        )
+
+        return {
+            "period": periodo,
+            "products": [
+                {
+                    "product_id": fila.product_id,
+                    "product": fila.product_name,
+                    "quantity_sold": int(fila.quantity or 0),
+                    "clients": int(fila.clients or 0),
+                    "revenue": float(fila.revenue or 0),
+                    "period": periodo,
+                }
+                for fila in filas
             ],
         }
 

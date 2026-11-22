@@ -5,12 +5,14 @@ import { API_ROUTES, getApiUrl } from "@/app/api";
 export interface UpdateProfilePayload {
     first_name: string;
     last_name: string;
+    email?: string;
     birth_date?: string;
 }
 
 export interface ProfileResponse {
     status: string;
     message: string;
+    errors?: Record<string, string[]>;
     days_registered?: number;
     user?: {
         first_name: string;
@@ -48,8 +50,10 @@ export const updateProfile = async (
         }));
 
     if (!response.ok && response.status !== 202) {
+        const primerError = Object.values(result.errors ?? {})[0]?.[0];
+
         throw new Error(
-            result.message || "Error al actualizar el perfil."
+            primerError || result.message || "Error al actualizar el perfil."
         );
     }
 

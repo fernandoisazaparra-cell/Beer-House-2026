@@ -44,7 +44,7 @@ PATRON_EMAIL = re.compile(
     r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 )
 
-PATRON_CODIGO = re.compile(r"^[A-Za-z2-9]{6}$")
+PATRON_CODIGO = re.compile(r"^[A-Za-z0-9]{6}$")
 
 
 def normalizar_nombre(nombre):
@@ -80,7 +80,15 @@ def validar_usuario(name, email, password, terms, years):
     # VALIDACIÓN DE DATOS ORIGINALES
     # ---------------------------------------------------------
 
-    if name and not PATRON_NOMBRE.fullmatch(name.strip()):
+    # Se valida después de normalizar para aceptar espacios repetidos y
+    # signos diacríticos (ñ, á, é...), tal como exige RN-001.
+    tiene_espacio_ilegal = any(
+        caracter.isspace() and caracter != " " for caracter in name
+    )
+    nombre_normalizado = normalizar_nombre(name) if name.strip() else ""
+    if tiene_espacio_ilegal or (
+        nombre_normalizado and not PATRON_NOMBRE.fullmatch(nombre_normalizado)
+    ):
         errores.setdefault("name", []).append(
             "El nombre contiene caracteres no permitidos."
         )

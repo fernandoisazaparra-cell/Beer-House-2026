@@ -11,9 +11,8 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from werkzeug.security import check_password_hash
-
 from config.settings import Config
+from shared.security.password import hash_password, needs_rehash, verify_password
 
 from ..infrastructure.repository import (
     SQLAlchemyUserRepository,
@@ -48,13 +47,17 @@ class AuthService:
         if not user.password:
             raise ValueError("Credenciales inválidas")
 
-        if not check_password_hash(user.password, password):
+        if not verify_password(user.password, password):
             self.repository.register_failed_login(user)
             raise ValueError("Credenciales inválidas")
 
         self.repository.reset_failed_logins(user)
 
-        token = self.generate_token(user.id, user.email)
+        # RNF-010: migra silenciosamente los hashes antiguos a bcrypt.
+        if needs_rehash(user.password):
+            self.repository.rehash_password(user, password)
+
+        token = self.generate_token(user.id, user.email, user.token_version)
 
         full_name = (
             f"{user.first_name or ''} "
@@ -117,7 +120,7 @@ class AuthService:
                     google_id
                 )
 
-        token = self.generate_token(user.id, user.email)
+        token = self.generate_token(user.id, user.email, user.token_version)
 
         full_name = (
             f"{user.first_name or ''} "
@@ -152,9 +155,9 @@ class AuthService:
             terms_version
         )
 
-    def generate_token(self, user_id, email):
+    def generate_token(self, user_id, email, token_version=0):
         """
-        Genera un JWT con fecha de emisión y expiración.
+        Genera un JWT con fecha de emisión, expiración y versión de sesión.
         """
 
         issued_at = datetime.now(UTC)
@@ -162,6 +165,7 @@ class AuthService:
         payload = {
             "user_id": user_id,
             "email": email,
+            "tv": token_version or 0,
             "iat": issued_at,
             "exp": issued_at + timedelta(
                 hours=Config.JWT_EXPIRATION_HOURS
@@ -183,14 +187,20 @@ class AuthService:
             raise ValueError("Token inválido")
 
         try:
-            return jwt.decode(
+            payload = jwt.decode(
                 token,
                 Config.JWT_SECRET,
                 algorithms=["HS256"]
             )
-
         except jwt.ExpiredSignatureError:
             raise ValueError("Token expirado") from None
 
         except jwt.InvalidTokenError:
             raise ValueError("Token inválido") from None
+
+        # RI-008: tokens emitidos antes de un logout ya no son válidos.
+        user = self.repository.find_by_id(payload.get("user_id"))
+        if not user or payload.get("tv", 0) != (user.token_version or 0):
+            raise ValueError("La sesión fue cerrada. Inicia sesión nuevamente.")
+
+        return payload

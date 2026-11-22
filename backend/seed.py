@@ -11,7 +11,7 @@ from features.users.infrastructure.models import UserModel
 from features.products.infrastructure.models import ProductModel
 from features.suppliers.infrastructure.models import SupplierModel
 from features.inventory.infrastructure.models import InventoryMovementModel
-from werkzeug.security import generate_password_hash
+from shared.security.password import hash_password
 
 app = create_app()
 
@@ -35,7 +35,7 @@ def seed_database():
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                password=generate_password_hash(password),
+                password=hash_password(password),
                 birth_date=date(1995, 1, 1),
                 terms_accepted_at=ahora,
                 age_confirmed_at=ahora,

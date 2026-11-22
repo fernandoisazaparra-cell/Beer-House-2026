@@ -7,7 +7,6 @@ from features.catalog.domain.exceptions import InvalidFilterError, ProductNotAva
 from features.catalog.domain.rules import is_adult
 from features.catalog.infrastructure.repository import SQLAlchemyCatalogRepository
 from shared.security.decorators import current_user, current_user_id, login_required
-from shared.security.roles import STAFF_ROLES
 
 catalog_bp = Blueprint("catalog", __name__, url_prefix="/api/catalog")
 service = CatalogService(SQLAlchemyCatalogRepository())
@@ -15,15 +14,15 @@ service = CatalogService(SQLAlchemyCatalogRepository())
 
 def adult_required(fn):
     """
-    RF-021 / RN-020: el catálogo es solo para mayores de 18 con edad confirmada.
-    El personal administrativo (admin/supervisor) no pasa por esta validación.
+    RF-021 / RN-020: el catálogo es solo para usuarios autenticados mayores
+    de 18 con edad confirmada, sin excepciones por rol.
     Debe ir DEBAJO de @login_required.
     """
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
         user = current_user()
-        if user.rol not in STAFF_ROLES and not is_adult(user):
+        if not is_adult(user):
             return jsonify({
                 "error": "Debes confirmar que eres mayor de 18 años para ver el catálogo.",
                 "message": "Debes confirmar que eres mayor de 18 años para ver el catálogo.",

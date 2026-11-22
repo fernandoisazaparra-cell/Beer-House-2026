@@ -18,7 +18,7 @@ def is_adult(user):
     - Debe haber confirmado términos y edad (age_confirmed_at).
     - Si tiene fecha de nacimiento, debe tener 18 años o más.
     """
-    if user.age_confirmed_at is None:
+    if getattr(user, "age_confirmed_at", None) is None:
         return False
     if user.birth_date is None:
         return True

@@ -7,12 +7,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
+  const MAX_QUANTITY = 20; // Debe coincidir con backend/features/sales/domain/rules.py
+
   const addToCart = (product: Omit<CartItem, 'quantity'>) => {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.id === product.id);
+      const available = Math.min(product.stock ?? MAX_QUANTITY, MAX_QUANTITY);
+      if (available < 1) return prevCart;
       if (existing) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: Math.min(item.quantity + 1, available) }
+            : item
         );
       }
       return [...prevCart, { ...product, quantity: 1 }];
@@ -25,9 +31,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateQuantity = (id: string, quantity: number) => {
-    if (quantity < 1) return;
+    if (!Number.isFinite(quantity) || quantity < 1) return;
     setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: Math.min(
+                Math.floor(quantity),
+                Math.min(item.stock ?? MAX_QUANTITY, MAX_QUANTITY)
+              ),
+            }
+          : item
+      )
     );
   };
 

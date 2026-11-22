@@ -43,13 +43,6 @@ class SQLAlchemySalesRepository:
         query = SaleModel.query.filter(
             SaleModel.status == PENDING
         )
-    def get_sales_by_user(self, user_id):
-        return (
-        SaleModel.query
-        .filter(SaleModel.user_id == user_id)
-        .order_by(SaleModel.created_at.desc())
-        .all()
-    )
 
         if user_id is not None:
             query = query.filter(SaleModel.user_id == user_id)
@@ -61,6 +54,14 @@ class SQLAlchemySalesRepository:
             query = query.filter(SaleModel.created_at < limit)
 
         return query.all()
+
+    def get_sales_by_user(self, user_id):
+        return (
+            SaleModel.query
+            .filter(SaleModel.user_id == user_id)
+            .order_by(SaleModel.created_at.desc())
+            .all()
+        )
 
     # ---------------- escritura ----------------
     def create_sale(self, user_id, lines, total, payment_method, gateway_name):

@@ -17,22 +17,27 @@ Secciones:
 # ==========================================
 
 import os
+import re
+from datetime import date, datetime
 from threading import Thread
 
 import requests
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
-from werkzeug.security import generate_password_hash
-
 from app.email.email_service import EmailError, EmailService
 from app.extensions import db, limiter
-from shared.security.decorators import role_required
-from shared.security.roles import STAFF_ROLES
+from shared.security.decorators import current_user, login_required, role_required
+from shared.security.password import hash_password
+from shared.security.roles import ADMIN, SUPERVISOR, USER
 
 from ..application.services import UserService
 from ..application.services_auth import AuthService
 from ..infrastructure.models import ProfileUpdateRequest
-from ..infrastructure.repository import SQLAlchemyUserRepository, ahora_utc
+from ..infrastructure.repository import (
+    SQLAlchemyUserRepository,
+    UserHasTransactions,
+    ahora_utc,
+)
 from .schemas import (
     ConfirmTermsSchema,
     GoogleLoginSchema,
@@ -47,10 +52,27 @@ users_bp = Blueprint("users_admin", __name__)
 
 repo = SQLAlchemyUserRepository()
 
+
+def find_token_user(service, payload):
+    """
+    Resuelve al usuario del token por id (identificador estable) y,
+    si no existe, por el email emitido. Así un cambio de correo no
+    invalida la sesión actual.
+    """
+    user = None
+    if payload.get("user_id"):
+        user = service.repository.find_by_id(payload["user_id"])
+
+    return user or service.repository.find_by_email(payload.get("email"))
+
+
 MSG_INVALID_JSON = "Body JSON inválido o vacío"
 MSG_NO_TOKEN = "Token no proporcionado"
 MSG_USER_NOT_FOUND = "Usuario no encontrado"
 MSG_REQUEST_NOT_FOUND = "Solicitud no encontrada o ya procesada"
+
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+ROL_VALUES = (ADMIN, SUPERVISOR, USER)
 
 
 # ==========================================
@@ -302,6 +324,15 @@ def confirm_terms():
     return {"message": "Términos y edad confirmados correctamente"}, 200
 
 
+@auth_bp.post("/logout")
+@limiter.limit("10 per minute")
+@login_required
+def logout():
+    """Cierra la sesión en el servidor invalidando el JWT actual (RI-008)."""
+    repo.revoke_tokens(current_user())
+    return {"message": "Sesión cerrada correctamente."}, 200
+
+
 @auth_bp.get("/me")
 @limiter.limit("10 per minute")
 def me():
@@ -315,7 +346,7 @@ def me():
     except ValueError as error:
         return {"message": str(error)}, 401
 
-    user = service.repository.find_by_email(payload["email"])
+    user = find_token_user(service, payload)
     if not user:
         return {"message": MSG_USER_NOT_FOUND}, 404
 
@@ -353,50 +384,137 @@ def update_profile():
     if not data:
         return {"message": MSG_INVALID_JSON}, 400
 
-    user = service.repository.find_by_email(payload["email"])
+    user = find_token_user(service, payload)
     if not user:
         return {"message": MSG_USER_NOT_FOUND}, 404
+
+    # Validar antes de registrar o aplicar cualquier cambio (CP-024 / CP-025).
+    errores = {}
+
+    nuevo_email = None
+    if "email" in data:
+        nuevo_email = str(data.get("email") or "").strip().lower()
+        if not EMAIL_RE.fullmatch(nuevo_email):
+            errores["email"] = ["El correo no tiene un formato válido."]
+        else:
+            existente = service.repository.find_by_email(nuevo_email)
+            if existente and existente.id != user.id:
+                errores["email"] = ["El email ya está registrado."]
+
+    nueva_fecha = None
+    if "birth_date" in data and data["birth_date"]:
+        try:
+            nueva_fecha = datetime.strptime(
+                str(data["birth_date"]), "%Y-%m-%d"
+            ).date()
+        except ValueError:
+            errores["birth_date"] = [
+                "El formato de la fecha debe ser AAAA-MM-DD."
+            ]
+        else:
+            hoy = date.today()
+            if nueva_fecha > hoy:
+                errores["birth_date"] = [
+                    "La fecha de nacimiento no puede ser futura."
+                ]
+            else:
+                edad = hoy.year - nueva_fecha.year - (
+                    (hoy.month, hoy.day) < (nueva_fecha.month, nueva_fecha.day)
+                )
+                if edad < 18:
+                    errores["birth_date"] = [
+                        "Debes ser mayor de 18 años."
+                    ]
+
+    for campo in ("first_name", "last_name"):
+        if campo in data and not str(data[campo] or "").strip():
+            errores[campo] = ["Este campo es obligatorio."]
+
+    if errores:
+        return {"errors": errores}, 400
 
     fecha_registro = (
         getattr(user, "created_at", None)
         or user.terms_accepted_at
         or user.age_confirmed_at
     )
-    dias_antiguedad = (ahora_utc() - fecha_registro).days if fecha_registro else 0
-
-    if dias_antiguedad < 30:
-        nueva_solicitud = ProfileUpdateRequest(
-            user_id=user.id,
-            requested_first_name=data.get("first_name", user.first_name),
-            requested_last_name=data.get("last_name", user.last_name),
-            requested_birth_date=(
-                data.get("birth_date") if "birth_date" in data else user.birth_date
-            ),
-            status="pending",
-        )
-        db.session.add(nueva_solicitud)
-        db.session.commit()
-
+    if fecha_registro is None:
         return {
-            "status": "pending_approval",
+            "status": "rejected",
+            "message": "No se pudo determinar la antigüedad de la cuenta.",
+        }, 403
+    if fecha_registro.tzinfo is not None:
+        fecha_registro = fecha_registro.replace(tzinfo=None)
+    dias_antiguedad = (ahora_utc() - fecha_registro).days
+
+    # RN-002: solo se puede actualizar después de 30 días.
+    if dias_antiguedad < 30:
+        return {
+            "status": "rejected",
             "message": (
                 f"Tu cuenta fue creada hace {dias_antiguedad} días. "
-                "Tu solicitud de actualización quedó registrada."
+                "Debes esperar 30 días para actualizar tus datos."
             ),
             "days_registered": dias_antiguedad,
-            "request_id": nueva_solicitud.id,
-        }, 202
+        }, 403
 
-    user.first_name = data.get("first_name", user.first_name)
-    user.last_name = data.get("last_name", user.last_name)
-    if "birth_date" in data:
-        user.birth_date = data["birth_date"]
+    # RN-002: toda actualización se registra como "pendiente" y el sistema
+    # la valida automáticamente (formato y correo único) antes de aplicarla.
+    solicitud = ProfileUpdateRequest(
+        user_id=user.id,
+        requested_first_name=str(
+            data.get("first_name", user.first_name)
+        ).strip(),
+        requested_last_name=str(
+            data.get("last_name", user.last_name)
+        ).strip(),
+        requested_birth_date=nueva_fecha or user.birth_date,
+        requested_email=nuevo_email or user.email,
+        status="pending",
+        created_at=ahora_utc(),
+    )
+    db.session.add(solicitud)
+    db.session.commit()
 
+    errores_auto = {}
+    if not EMAIL_RE.fullmatch(str(solicitud.requested_email or "")):
+        errores_auto["email"] = ["El correo no tiene un formato válido."]
+    else:
+        duplicado = service.repository.find_by_email(solicitud.requested_email)
+        if duplicado and duplicado.id != user.id:
+            errores_auto["email"] = ["El email ya está registrado."]
+
+    if not solicitud.requested_first_name:
+        errores_auto["first_name"] = ["Este campo es obligatorio."]
+    if not solicitud.requested_last_name:
+        errores_auto["last_name"] = ["Este campo es obligatorio."]
+
+    if errores_auto:
+        solicitud.status = "rejected"
+        solicitud.processed_at = ahora_utc()
+        db.session.commit()
+        return {
+            "status": "rejected",
+            "message": "La solicitud no pasó la validación automática.",
+            "errors": errores_auto,
+            "request_id": solicitud.id,
+        }, 400
+
+    user.first_name = solicitud.requested_first_name
+    user.last_name = solicitud.requested_last_name
+    user.birth_date = solicitud.requested_birth_date
+    user.email = solicitud.requested_email
+
+    solicitud.status = "approved"
+    solicitud.processed_at = ahora_utc()
     db.session.commit()
 
     return {
         "status": "success",
-        "message": "Perfil actualizado correctamente.",
+        "message": (
+            "Solicitud validada automáticamente y perfil actualizado correctamente."
+        ),
+        "request_id": solicitud.id,
         "user": {
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -410,7 +528,7 @@ def update_profile():
 # ==========================================
 
 @auth_bp.get("/admin/profile-requests")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def get_profile_requests():
     solicitudes = ProfileUpdateRequest.query.filter_by(status="pending").all()
     resultado = []
@@ -426,21 +544,28 @@ def get_profile_requests():
                 req.requested_birth_date.isoformat()
                 if req.requested_birth_date else None
             ),
+            "requested_email": req.requested_email,
             "created_at": req.created_at.isoformat(),
         })
     return {"requests": resultado}, 200
 
 
 @auth_bp.post("/admin/profile-requests/<int:request_id>/approve")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def approve_profile_request(request_id):
     solicitud = ProfileUpdateRequest.query.get(request_id)
     if not solicitud or solicitud.status != "pending":
         return {"message": MSG_REQUEST_NOT_FOUND}, 404
 
     user = solicitud.user
+    email_solicitado = solicitud.requested_email or user.email
+    duplicado = repo.find_by_email(email_solicitado)
+    if duplicado and duplicado.id != user.id:
+        return {"message": "El correo solicitado ya está registrado."}, 409
+
     user.first_name = solicitud.requested_first_name
     user.last_name = solicitud.requested_last_name
+    user.email = email_solicitado
     if solicitud.requested_birth_date:
         user.birth_date = solicitud.requested_birth_date
 
@@ -452,7 +577,7 @@ def approve_profile_request(request_id):
 
 
 @auth_bp.post("/admin/profile-requests/<int:request_id>/reject")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def reject_profile_request(request_id):
     solicitud = ProfileUpdateRequest.query.get(request_id)
     if not solicitud or solicitud.status != "pending":
@@ -470,7 +595,7 @@ def reject_profile_request(request_id):
 # ==========================================
 
 @users_bp.get("/")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def get_users():
     try:
         users = repo.get_all_users()
@@ -479,6 +604,8 @@ def get_users():
                 "id": u.id,
                 "name": f"{u.first_name} {u.last_name}".strip(),
                 "email": u.email,
+                "rol": u.rol,
+                "estado": "Activo" if u.age_confirmed_at else "Pendiente",
             }
             for u in users
         ]
@@ -488,42 +615,73 @@ def get_users():
 
 
 @users_bp.post("/")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def create_user():
     try:
-        data = request.get_json()
-        name = data.get("name")
-        email = data.get("email")
+        data = request.get_json(silent=True) or {}
+        name = str(data.get("name") or "").strip()
+        email = str(data.get("email") or "").strip().lower()
         password = data.get("password")
+        rol = data.get("rol") or USER
 
         if not name or not email or not password:
             return jsonify({
                 "error": "Faltan datos obligatorios (name, email, password)"
             }), 400
 
+        if rol not in ROL_VALUES:
+            return jsonify({
+                "error": "Rol inválido. Use admin, supervisor o user."
+            }), 400
+
+        if not EMAIL_RE.fullmatch(email):
+            return jsonify({
+                "error": "El correo no tiene un formato válido."
+            }), 400
+
+        if repo.find_by_email(email):
+            return jsonify({"error": "El email ya está registrado."}), 400
+
         partes = name.split(" ", 1)
         first_name = partes[0]
         last_name = partes[1] if len(partes) > 1 else "Cliente"
 
-        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+        hashed_password = hash_password(password)
         new_user = repo.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
             password=hashed_password,
+            rol=rol,
         )
 
-        return jsonify({"message": "Usuario creado con éxito", "id": new_user.id}), 201
+        return jsonify({
+            "message": "Usuario creado con éxito",
+            "id": new_user.id,
+        }), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Error al crear usuario", "details": str(e)}), 500
 
 
 @users_bp.put("/<int:user_id>")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def update_user(user_id):
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
+
+        if "rol" in data and data["rol"] not in ROL_VALUES:
+            return jsonify({
+                "error": "Rol inválido. Use admin, supervisor o user."
+            }), 400
+
+        if "email" in data:
+            email = str(data["email"] or "").strip().lower()
+            if not EMAIL_RE.fullmatch(email):
+                return jsonify({
+                    "error": "El correo no tiene un formato válido."
+                }), 400
+
         repo.update_user_admin(user_id, data)
         return jsonify({"message": "Usuario actualizado con éxito"}), 200
     except ValueError as ve:
@@ -534,11 +692,13 @@ def update_user(user_id):
 
 
 @users_bp.delete("/<int:user_id>")
-@role_required(*STAFF_ROLES)
+@role_required(ADMIN)
 def delete_user(user_id):
     try:
         response = repo.delete_user_admin(user_id)
         return jsonify(response), 200
+    except UserHasTransactions as ve:
+        return jsonify({"error": str(ve)}), 409
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 404
     except Exception as e:

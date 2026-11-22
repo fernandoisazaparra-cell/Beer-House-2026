@@ -82,6 +82,10 @@ def check_roles(*allowed_roles):
     if not user:
         return _error("Usuario no encontrado.", 401)
 
+    # RI-008: un logout incrementa token_version y revoca todos los tokens emitidos antes.
+    if payload.get("tv", 0) != (user.token_version or 0):
+        return _error("La sesión fue cerrada. Inicia sesión nuevamente.", 401)
+
     if allowed_roles and user.rol not in allowed_roles:
         return _error(
             "No tienes permisos para realizar esta acción.",

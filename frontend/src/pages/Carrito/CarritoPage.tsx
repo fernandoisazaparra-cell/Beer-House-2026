@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useCart } from '../../app/context/cartUse';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '@/app/api';
+import { authFetch } from '@/shared/lib/authFetch';
 import './CarritoPage.css';
 
 export const CarritoPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('CARD');
   const navigate = useNavigate();
 
   const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -21,26 +23,31 @@ export const CarritoPage = () => {
     try {
       setLoading(true);
 
-      // Estructura para enviar la venta al backend
+      // Elusuario se toma del token y el precio se recalcula en el backend (RF-043).
       const orderPayload = {
-        user_id: 1, // Puedes tomarlo de useAuth() si lo tienes configurado
         items: cart.map((item) => ({
           product_id: Number(item.id),
           quantity: item.quantity,
-          unit_price: item.price,
         })),
-        total_amount: totalPrice,
+        expected_total: totalPrice,
+        payment_method: paymentMethod,
       };
 
-      const res = await fetch(`${API_URL}/sales`, {
+      const res = await authFetch(`${API_URL}/sales/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Error al procesar la compra.');
+        const issues = Array.isArray(data.issues)
+          ? data.issues.map((issue: { message?: string }) => issue.message).filter(Boolean).join('\n')
+          : '';
+        throw new Error(
+          `${data.error || data.message || 'Error al procesar la compra.'}${issues ? `\n${issues}` : ''}`
+        );
       }
 
       alert('¡Pedido realizado y registrado con éxito!');
@@ -92,7 +99,7 @@ export const CarritoPage = () => {
                   <input
                     type="number"
                     min="1"
-                    max={99}
+                    max={Math.min(item.stock ?? 20, 20)}
                     value={item.quantity}
                     onChange={(e) => updateQuantity(item.id, Number(e.target.value))}
                     onKeyDown={handleQuantityKeyDown}
@@ -117,6 +124,21 @@ export const CarritoPage = () => {
           <div className="summary-row">
             <span>Total:</span>
             <span className="cart-total-price">${totalPrice.toLocaleString('es-CO')}</span>
+          </div>
+          <div className="summary-row">
+            <label htmlFor="payment-method">Método de pago:</label>
+            <select
+              id="payment-method"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="cart-qty-input"
+            >
+              <option value="CARD">Tarjeta</option>
+              <option value="CASH">Efectivo</option>
+              <option value="TRANSFER">Transferencia</option>
+              <option value="PSE">PSE</option>
+              <option value="NEQUI">Nequi</option>
+            </select>
           </div>
           <div className="cart-actions-row">
             <button onClick={clearCart} className="btn-secondary" disabled={loading}>

@@ -3,6 +3,23 @@ from app.extensions import db
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 
+# RF-015 / RN-014: texto legal único para el catálogo.
+DEFAULT_LEGAL_WARNING = "Prohibida su venta a menores de 18 años"
+_LEGACY_LEGAL_WARNINGS = {
+    "Prohibida la venta de bebidas embriagantes a menores de edad.",
+    "Prohibida la venta de bebidas embriagantes a menores de edad",
+    "Prohibida la venta de alcohol a menores de 18 años.",
+}
+
+
+def normalize_legal_warning(value):
+    """Devuelve el texto legal exacto para valores vacíos o heredados."""
+    text = str(value).strip() if value is not None else ""
+    if not text or text in _LEGACY_LEGAL_WARNINGS:
+        return DEFAULT_LEGAL_WARNING
+    return text
+
+
 class ProductModel(db.Model):
     __tablename__ = "products"
 
@@ -20,7 +37,7 @@ class ProductModel(db.Model):
     legal_warning = db.Column(
         db.String(255),
         nullable=False,
-        default="Prohibida la venta de bebidas embriagantes a menores de edad."
+        default=DEFAULT_LEGAL_WARNING
     )
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
@@ -44,7 +61,7 @@ class ProductModel(db.Model):
             "imagen": self.image_url,
             "description": self.description,
             "descripcion": self.description,
-            "legal_warning": self.legal_warning,
+            "legal_warning": normalize_legal_warning(self.legal_warning),
             "is_active": self.is_active,
             "status": "Disponible" if self.stock > 0 else "Agotado"
         }

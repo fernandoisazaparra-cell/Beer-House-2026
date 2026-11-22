@@ -6,6 +6,7 @@ export interface CartItem {
   price: number;
   imageUrl: string;
   quantity: number;
+  stock?: number;        // RN-018: máximo de unidades disponibles
   status?: string;       // RN-012 (productos inactivos)
   stockError?: boolean;  // RN-018 (stock insuficiente)
 }

@@ -1,6 +1,9 @@
 from app.extensions import db
-from features.products.infrastructure.models import ProductModel
-from features.products.infrastructure.models import Combo
+from features.products.infrastructure.models import (
+    Combo,
+    ProductModel,
+    normalize_legal_warning,
+)
 
 class SQLAlchemyProductRepository:
 
@@ -14,26 +17,43 @@ class SQLAlchemyProductRepository:
 
     def create(self, data: dict):
         try:
+            # RF-010 / RI-010: el repositorio no inventa valores ni placeholders.
             name = data.get("name") or data.get("nombre")
-            liquor_type = data.get("liquor_type") or data.get("category") or data.get("categoria") or "Licor"
-            
-            # Conversión segura de números
-            raw_price = data.get("price") if data.get("price") is not None else data.get("precio", 0)
-            price = float(raw_price) if raw_price else 0.0
-            
-            raw_stock = data.get("stock", 0)
-            stock = int(raw_stock) if raw_stock else 0
-
-            description = data.get("description") or data.get("descripcion") or ""
+            liquor_type = (
+                data.get("liquor_type")
+                or data.get("category")
+                or data.get("categoria")
+            )
+            raw_price = data.get("price") if data.get("price") is not None else data.get("precio")
+            raw_stock = data.get("stock") if data.get("stock") is not None else data.get("cantidad")
+            description = data.get("description") or data.get("descripcion")
             image_url = data.get("image_url") or data.get("imageUrl") or data.get("imagen")
 
+            if not name or not liquor_type or not description or not image_url:
+                raise ValueError(
+                    "Nombre, tipo/licor, imagen y descripción son obligatorios."
+                )
+
+            try:
+                price = float(raw_price)
+                stock = int(raw_stock)
+            except (TypeError, ValueError):
+                raise ValueError("Precio y stock deben ser números válidos.") from None
+
+            if price <= 0:
+                raise ValueError("El precio debe ser mayor a 0.")
+            # RN-009: el stock inicial debe ser mayor a cero.
+            if stock <= 0:
+                raise ValueError("El stock inicial debe ser mayor a 0.")
+
             new_product = ProductModel(
-                name=name,
-                liquor_type=liquor_type,
+                name=str(name).strip(),
+                liquor_type=str(liquor_type).strip(),
                 price=price,
                 stock=stock,
-                description=description,
-                image_url=image_url
+                description=str(description).strip(),
+                image_url=str(image_url).strip(),
+                legal_warning=normalize_legal_warning(data.get("legal_warning")),
             )
 
             db.session.add(new_product)
@@ -68,6 +88,10 @@ class SQLAlchemyProductRepository:
             image_val = data.get("image_url") or data.get("imageUrl") or data.get("imagen")
             if image_val:
                 product.image_url = image_val
+
+            # RF-015: el texto legal se puede editar desde el formulario admin.
+            if "legal_warning" in data and data["legal_warning"] is not None:
+                product.legal_warning = normalize_legal_warning(data["legal_warning"])
 
             db.session.commit()
             return product

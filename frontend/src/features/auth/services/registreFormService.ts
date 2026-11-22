@@ -39,7 +39,20 @@ export interface LoginResponse {
   requires_confirmation?: boolean;
 }
 
-export type CurrentUserResponse = LoginResponse["user"];
+export interface CurrentUserResponse {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  name: string;
+  email: string;
+  rol: string;
+  requires_confirmation?: boolean;
+}
+
+export interface MeResponse {
+  user: CurrentUserResponse;
+  requires_confirmation?: boolean;
+}
 
 export interface RegisterResponse {
   message?: string;
@@ -173,8 +186,8 @@ export const confirmTerms = async (token: string, termsVersion = "v1.0") => {
 
 export const getCurrentUser = async (
   token: string,
-): Promise<CurrentUserResponse> => {
-  return apiRequest<CurrentUserResponse>(getApiUrl(API_ROUTES.Auth.Me), {
+): Promise<MeResponse> => {
+  return apiRequest<MeResponse>(getApiUrl(API_ROUTES.Auth.Me), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,

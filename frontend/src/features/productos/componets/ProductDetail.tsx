@@ -4,7 +4,7 @@ import { useAuth } from '@/app/context/authUse';
 import { useCart } from '@/app/context/cartUse';
 import { formatCurrency } from '@/shared/utils/formatCurrency';
 import { CatalogError, getCatalogProduct } from '../api/catalogApi';
-import type { CatalogProduct } from '../catalog.types';
+import { resolveLegalWarning, type CatalogProduct } from '../catalog.types';
 import styles from './ProductDetail.module.css';
 
 const FALLBACK_IMAGE =
@@ -67,7 +67,13 @@ export const ProductDetail = () => {
   const image = product.image_url || FALLBACK_IMAGE;
 
   const handleAddToCart = () => {
-    addToCart({ id: String(product.id), name: product.name, price: product.price, imageUrl: image });
+    addToCart({
+      id: String(product.id),
+      name: product.name,
+      price: product.price,
+      imageUrl: image,
+      stock: product.stock,
+    });
   };
 
   return (
@@ -90,7 +96,7 @@ export const ProductDetail = () => {
           {/* RN-019: visible siempre */}
           <div className={styles.legal} role="note">
             <strong>⚠ Advertencia legal</strong>
-            <p>{product.legal_warning}</p>
+            <p>{resolveLegalWarning(product.legal_warning)}</p>
           </div>
 
           {isAdminOrSupervisor ? (

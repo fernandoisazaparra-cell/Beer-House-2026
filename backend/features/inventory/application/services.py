@@ -323,11 +323,11 @@ class InventoryService:
                 100.0 if physical_stock > 0 else 0.0
             )
 
-        if diff_percentage > 2.0 and not signed_act_url:
+        # RN-022: todo ajuste debe estar soportado por acta firmada.
+        if difference != 0 and not signed_act_url:
             raise ValueError(
-                f"La diferencia es del {diff_percentage:.2f}% "
-                "(supera el 2%). Es obligatorio adjuntar o registrar "
-                "la referencia del acta firmada."
+                "Es obligatorio adjuntar o registrar la referencia del acta "
+                "firmada para soportar el ajuste del conteo."
             )
 
         count_record = PhysicalCountModel(
@@ -343,7 +343,21 @@ class InventoryService:
         db.session.add(count_record)
         db.session.commit()
 
-        return count_record.to_dict()
+        # RN-023: si la diferencia supera el 2 %, el ajuste se genera automáticamente.
+        automatic_adjustment = False
+        if diff_percentage > 2.0 and difference != 0:
+            self.apply_stock_adjustment(
+                count_record.id,
+                user_role="Administrador",
+                user_name="Ajuste automático por conteo",
+                user_id=user_id,
+            )
+            automatic_adjustment = True
+
+        return {
+            **count_record.to_dict(),
+            "automatic_adjustment": automatic_adjustment,
+        }
 
     def apply_stock_adjustment(
         self,

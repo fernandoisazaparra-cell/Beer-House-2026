@@ -6,10 +6,9 @@
 # =====================================================================
 
 from datetime import datetime, date
-from werkzeug.security import (
-    check_password_hash,
-    generate_password_hash
-)
+from werkzeug.security import check_password_hash
+
+from shared.security.password import hash_password
 
 from ..domain.validators import (
     validar_codigo,
@@ -87,10 +86,7 @@ class UserService:
         first_name = partes[0]
         last_name = partes[1] if len(partes) > 1 else "Cliente"
 
-        password_hash = generate_password_hash(
-            datos["password"],
-            method="pbkdf2:sha256"
-        )
+        password_hash = hash_password(datos["password"])
 
         pendiente = self.repository.find_pending_by_email(email)
 
@@ -265,10 +261,7 @@ class UserServiceCRUD:
         first_name = partes[0]
         last_name = partes[1] if len(partes) > 1 else "Cliente"
 
-        hashed_password = generate_password_hash(
-            password,
-            method="pbkdf2:sha256"
-        )
+        hashed_password = hash_password(password)
 
         return self.repository.create_user(
             first_name,

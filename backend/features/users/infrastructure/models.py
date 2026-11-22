@@ -18,6 +18,12 @@ class UserModel(db.Model):
     failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
     locked_until = db.Column(db.DateTime, nullable=True)
     rol = db.Column(db.String(20), nullable=False, default='user')
+    created_at = db.Column(
+        db.DateTime, nullable=False, server_default=db.func.now()
+    )  # RN-002: antigüedad para cambios de perfil
+    token_version = db.Column(
+        db.Integer, nullable=False, default=0, server_default="0"
+    )  # RI-008: revocación de sesiones al cerrar sesión
 
 class PendingRegistration(db.Model):
     __tablename__ = "pending_registrations"
@@ -44,6 +50,7 @@ class ProfileUpdateRequest(db.Model):
     requested_first_name = db.Column(db.String(100), nullable=False)
     requested_last_name = db.Column(db.String(100), nullable=False)
     requested_birth_date = db.Column(db.Date, nullable=True)
+    requested_email = db.Column(db.String(255), nullable=True)  # RN-002
     status = db.Column(db.String(20), default="pending", nullable=False)  # pending, approved, rejected
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     processed_at = db.Column(db.DateTime, nullable=True)

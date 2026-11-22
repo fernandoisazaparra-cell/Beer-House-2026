@@ -336,6 +336,18 @@ def get_purchase_history():
     return jsonify({"sales": history}), 200
 
 
+@purchases_bp.route("/history/<int:user_id>", methods=["GET"])
+@role_required(*STAFF_ROLES)
+@handle_errors(
+    "Error al consultar historial de compras.",
+    "No fue posible consultar el historial.",
+)
+def get_purchase_history_by_user(user_id):
+    """RF-046: Admin/Supervisor pueden consultar el historial de otro cliente."""
+    history = purchase_service.get_client_purchase_history(user_id)
+    return jsonify({"sales": history}), 200
+
+
 # ==========================================
 # 8. CHECKOUT Y WEBHOOK (DESHABILITADOS)
 # ==========================================

@@ -1,29 +1,35 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+import { API_URL } from "@/app/api";
+import { authFetch } from "@/shared/lib/authFetch";
 
+/**
+ * Valida el carrito contra el backend (RF-019 / RN-012 / RN-018).
+ * El backend es la fuente de verdad: recalcula precios y stock.
+ * No existe "fail open": si no se puede validar, la compra se bloquea.
+ */
 export async function validateCartWithBackend(cartItems) {
-  try {
-    const response = await fetch(`${API_URL}/cart/validate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ items: cartItems }),
-    });
+  const items = cartItems.map((item) => ({
+    product_id: Number(item.id),
+    quantity: Number(item.quantity),
+  }));
 
-    if (!response.ok) {
-      // Si el endpoint aún no está creado en Flask, evitamos romper la app devolviendo éxito simulado temporal
-      if (response.status === 404) {
-        console.warn("Endpoint /api/cart/validate no encontrado en el backend. Saltando validación temporal.");
-        return { success: true };
-      }
-      throw new Error('Error al conectar con el servidor.');
-    }
+  const response = await authFetch(`${API_URL}/sales/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
 
-    const data = await response.json();
-    return data; 
-  } catch (error) {
-    console.error("Error de validación:", error);
-    // Temporal para que no bloquee el flujo de compra si la ruta no existe en Flask
-    return { success: true }; 
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error || data.message || "No se pudo validar el carrito."
+    );
   }
+
+  return {
+    success: Boolean(data.ok),
+    items: data.items || [],
+    issues: data.issues || [],
+    total: data.total,
+  };
 }

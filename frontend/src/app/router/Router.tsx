@@ -18,6 +18,7 @@ import PedidosAdmin from "@/pages/Dashboard/PedidosAdmin";
 import ProductosAdmin from "@/pages/Dashboard/ProductosAdmin";
 import CategoriasAdmin from "@/pages/Dashboard/CategoriasAdmin";
 import ClientesAdmin from "@/pages/Dashboard/ClientesAdmin";
+import UsuariosAdmin from "@/pages/Dashboard/UsuariosAdmin";
 import VentasAdmin from "@/pages/Dashboard/VentasAdmin";
 import PromocionesAdmin from "@/pages/Dashboard/PromocionesAdmin";
 import ProveedoresAdmin from "@/pages/Dashboard/ProveedoresAdmin";
@@ -48,7 +49,7 @@ const guard = (roles: string[], page: ReactNode) => (
 );
 
 export const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, updateCurrentUser } = useAuth();
 
   const currentUser = user
     ? {
@@ -84,7 +85,10 @@ export const AppRoutes = () => {
           path="perfil"
           element={
             <ProtectedRoute>
-              <ProfilePage currentUser={currentUser} />
+              <ProfilePage
+                currentUser={currentUser}
+                onUserChange={updateCurrentUser}
+              />
             </ProtectedRoute>
           }
         />
@@ -119,7 +123,8 @@ export const AppRoutes = () => {
           <Route path="pedidos" element={guard(ADMIN_ONLY, <PedidosAdmin />)} />
           <Route path="proveedores" element={guard(ADMIN_ONLY, <ProveedoresAdmin />)} />
           <Route path="clientes" element={guard(ADMIN_ONLY, <ClientesAdmin />)} />
-          <Route path="ventas" element={guard(ADMIN_ONLY, <VentasAdmin />)} />
+          <Route path="usuarios" element={guard(ADMIN_ONLY, <UsuariosAdmin />)} />
+          <Route path="ventas" element={guard(ADMIN_AND_SUPERVISOR, <VentasAdmin />)} />
           <Route path="promociones" element={guard(ADMIN_ONLY, <PromocionesAdmin />)} />
           <Route path="marketing-combos" element={guard(ADMIN_ONLY, <MarketingCombosPage />)} />
           <Route path="campanas" element={guard(ADMIN_ONLY, <CampaignsAdmin />)} />

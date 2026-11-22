@@ -14,6 +14,9 @@ interface FormFieldProps {
     value?: string;
     error?: string;
     autoComplete?: string;
+    min?: string;
+    max?: string;
+    required?: boolean;
     icon?: React.ReactNode;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -27,6 +30,9 @@ export const FormField = ({
     error,
     icon,
     autoComplete,
+    min,
+    max,
+    required,
     onChange
 }: FormFieldProps) => {
 
@@ -57,6 +63,9 @@ export const FormField = ({
                     placeholder={placeholder}
                     value={value}
                     autoComplete={autoComplete}
+                    min={min}
+                    max={max}
+                    required={required}
                     onChange={onChange}
                 />
 

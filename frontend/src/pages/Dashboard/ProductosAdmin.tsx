@@ -3,8 +3,15 @@ import './ProductosAdmin.css';
 import { AiOutlineProduct } from '@/ui/icons';
 import { authFetch } from "@/shared/lib/authFetch";
 import { API_URL } from "@/app/api";
+import { useAuth } from "@/app/context/authUse";
 import { CreateComboModal } from '../../features/productos/componets/CreateComboModal';
+import { DEFAULT_LEGAL_WARNING, resolveLegalWarning } from '../../features/productos/catalog.types';
 import type { Combo } from '../../features/productos/combos.types';
+
+const IMAGE_PLACEHOLDER = 'https://via.placeholder.com/100?text=Beer';
+
+type ProductStatus = 'Disponible' | 'Agotado';
+type AvailabilityFilter = 'all' | 'available' | 'out_of_stock';
 
 export interface Product {
   id: string | number;
@@ -14,15 +21,23 @@ export interface Product {
   stock: number;
   imageUrl: string;
   description: string;
+  legalWarning: string;
+  status: ProductStatus;
+  isActive: boolean;
 }
 
 export const ProductosAdmin = () => {
+  const { user } = useAuth();
+  // RF-018 / RN-017: solo admin puede ver la acción de eliminar.
+  const canDelete = user?.rol === 'admin';
+
   const [products, setProducts] = useState<Product[]>([]);
   const [combosList, setCombosList] = useState<Combo[]>([]);
   const [activeTab, setActiveTab] = useState<'products' | 'combos'>('products');
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>('all');
+
   // Estado para controlar el modal de creación/edición de Combos (RF-056)
   const [isComboModalOpen, setIsComboModalOpen] = useState(false);
   const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
@@ -36,24 +51,37 @@ export const ProductosAdmin = () => {
     price: '',
     stock: '',
     description: '',
+    legalWarning: DEFAULT_LEGAL_WARNING,
   });
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await authFetch(`${API_URL}/products/`);
+      // RF-011 / RI-011 / RN-011: incluir agotados (e inactivos) en el listado admin.
+      const response = await authFetch(`${API_URL}/products/?include_inactive=true`);
       if (!response.ok) throw new Error('Error al consultar productos');
       const data = await response.json();
 
-      const mappedProducts: Product[] = data.map((p: any) => ({
-        id: p.id || p.id_producto || 'PROD-000',
-        name: p.name || p.nombre || 'Producto sin nombre',
-        category: p.category || p.categoria || p.liquor_type || 'Licor',
-        price: Number(p.price || p.precio || 0),
-        stock: Number(p.stock || 0),
-        imageUrl: p.imageUrl || p.imagen || p.image_url || 'https://via.placeholder.com/100?text=Beer',
-        description: p.description || p.descripcion || '',
-      }));
+      const mappedProducts: Product[] = data.map((p: any) => {
+        const stock = Number(p.stock ?? 0);
+        const status: ProductStatus =
+          p.status === 'Disponible' || p.status === 'Agotado'
+            ? p.status
+            : stock > 0 ? 'Disponible' : 'Agotado';
+
+        return {
+          id: p.id || p.id_producto || 'PROD-000',
+          name: p.name || p.nombre || 'Producto sin nombre',
+          category: p.category || p.categoria || p.liquor_type || 'Licor',
+          price: Number(p.price ?? p.precio ?? 0),
+          stock,
+          imageUrl: p.imageUrl || p.imagen || p.image_url || '',
+          description: p.description || p.descripcion || '',
+          legalWarning: resolveLegalWarning(p.legal_warning),
+          status,
+          isActive: p.is_active !== false,
+        };
+      });
 
       setProducts(mappedProducts);
     } catch (error) {
@@ -68,7 +96,7 @@ export const ProductosAdmin = () => {
       const response = await authFetch(`${API_URL}/products/combos`);
       if (response.ok) {
         const data = await response.json();
-        
+
         const mappedCombos = (Array.isArray(data) ? data : []).map((c: any) => ({
           id: c.id,
           name: c.name || c.nombre,
@@ -78,7 +106,7 @@ export const ProductosAdmin = () => {
           imageUrl: c.imageUrl || c.image_url || c.imagen || 'https://via.placeholder.com/100?text=Combo',
           stock: Number(c.stock || 0),
           status: c.status || 'active',
-          productsIncluded: c.productsIncluded || [] // <--- ¡Añade esta línea para cumplir con el tipo Combo!
+          productsIncluded: c.productsIncluded || [],
         }));
 
         setCombosList(mappedCombos);
@@ -92,6 +120,12 @@ export const ProductosAdmin = () => {
     fetchProducts();
     fetchCombos();
   }, []);
+
+  const visibleProducts = products.filter((product) => {
+    if (availabilityFilter === 'available') return product.status === 'Disponible';
+    if (availabilityFilter === 'out_of_stock') return product.status === 'Agotado';
+    return true;
+  });
 
   const handleOpenAddCombo = () => {
     setEditingCombo(null);
@@ -109,7 +143,7 @@ export const ProductosAdmin = () => {
       const url = isEditing
         ? `${API_URL}/products/combos/${editingCombo.id}`
         : `${API_URL}/products/combos`;
-      
+
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await authFetch(url, {
@@ -182,7 +216,14 @@ export const ProductosAdmin = () => {
 
   const handleOpenAddModal = () => {
     setEditingProduct(null);
-    setFormData({ name: '', category: 'Cerveza', price: '', stock: '', description: '' });
+    setFormData({
+      name: '',
+      category: 'Cerveza',
+      price: '',
+      stock: '',
+      description: '',
+      legalWarning: DEFAULT_LEGAL_WARNING,
+    });
     setImagePreview('');
     setIsModalOpen(true);
   };
@@ -195,6 +236,7 @@ export const ProductosAdmin = () => {
       price: product.price.toString(),
       stock: product.stock.toString(),
       description: product.description,
+      legalWarning: product.legalWarning,
     });
     setImagePreview(product.imageUrl);
     setIsModalOpen(true);
@@ -203,28 +245,40 @@ export const ProductosAdmin = () => {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const name = formData.name.trim();
+    const description = formData.description.trim();
+    const legalWarning = resolveLegalWarning(formData.legalWarning);
     const priceNum = Number(formData.price);
     const stockNum = Number(formData.stock);
 
-    if (!formData.name || priceNum < 1 || stockNum < 1) {
-      alert('El precio y el stock deben ser al menos 1.');
+    if (!name || !formData.category || !description || !imagePreview) {
+      alert('Nombre, tipo/licor, imagen y descripción son obligatorios.');
+      return;
+    }
+
+    if (
+      !Number.isFinite(priceNum) || priceNum <= 0 ||
+      !Number.isFinite(stockNum) || stockNum < 1 || !Number.isInteger(stockNum)
+    ) {
+      alert('El precio y la cantidad inicial deben ser mayores a 0.');
       return;
     }
 
     const payload = {
-      name: formData.name,
-      nombre: formData.name,
+      name,
+      nombre: name,
       liquor_type: formData.category,
       category: formData.category,
       categoria: formData.category,
       price: priceNum,
       precio: priceNum,
       stock: stockNum,
-      description: formData.description,
-      descripcion: formData.description,
-      image_url: imagePreview || 'https://via.placeholder.com/100?text=Beer',
-      imageUrl: imagePreview || 'https://via.placeholder.com/100?text=Beer',
-      imagen: imagePreview || 'https://via.placeholder.com/100?text=Beer',
+      description,
+      descripcion: description,
+      image_url: imagePreview,
+      imageUrl: imagePreview,
+      imagen: imagePreview,
+      legal_warning: legalWarning,
     };
 
     try {
@@ -254,7 +308,7 @@ export const ProductosAdmin = () => {
     } catch (error: any) {
       console.error('Error al guardar producto:', error);
       alert(`No se pudo guardar el producto: ${error.message}`);
-    } 
+    }
   };
 
   const handleDeleteProduct = async (id: string | number) => {
@@ -296,21 +350,38 @@ export const ProductosAdmin = () => {
 
       {/* Selector de Pestañas para ver Productos o Combos */}
       <div style={{ display: 'flex', gap: '15px', marginBottom: '15px', borderBottom: '1px solid #333', paddingBottom: '10px' }}>
-        <button 
-          type="button" 
-          onClick={() => setActiveTab('products')} 
+        <button
+          type="button"
+          onClick={() => setActiveTab('products')}
           style={{ background: 'none', border: 'none', color: activeTab === 'products' ? '#d0a35c' : '#888', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
         >
           Productos Individuales ({products.length})
         </button>
-        <button 
-          type="button" 
-          onClick={() => setActiveTab('combos')} 
+        <button
+          type="button"
+          onClick={() => setActiveTab('combos')}
           style={{ background: 'none', border: 'none', color: activeTab === 'combos' ? '#d0a35c' : '#888', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
         >
           Combos Registrados ({combosList.length})
         </button>
       </div>
+
+      {activeTab === 'products' && (
+        <div className="admin-filter-bar">
+          <label htmlFor="availability-filter">Disponibilidad:</label>
+          <select
+            id="availability-filter"
+            className="form-input"
+            value={availabilityFilter}
+            onChange={(e) => setAvailabilityFilter(e.target.value as AvailabilityFilter)}
+          >
+            <option value="all">Todos</option>
+            <option value="available">Disponibles</option>
+            <option value="out_of_stock">Agotados</option>
+          </select>
+          <span>Mostrando {visibleProducts.length} de {products.length}</span>
+        </div>
+      )}
 
       <div className="admin-table-container">
         {loading ? (
@@ -328,21 +399,24 @@ export const ProductosAdmin = () => {
                 <th>Categoría</th>
                 <th>Precio</th>
                 <th>Stock</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {products.length === 0 ? (
+              {visibleProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                    No hay productos registrados en la base de datos.
+                  <td colSpan={9} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                    {availabilityFilter === 'all'
+                      ? 'No hay productos registrados en la base de datos.'
+                      : 'No hay productos con la disponibilidad seleccionada.'}
                   </td>
                 </tr>
               ) : (
-                products.map((prod) => (
+                visibleProducts.map((prod) => (
                   <tr key={prod.id}>
                     <td>
-                      <img src={prod.imageUrl} alt={prod.name} className="product-img-thumb" />
+                      <img src={prod.imageUrl || IMAGE_PLACEHOLDER} alt={prod.name} className="product-img-thumb" />
                     </td>
                     <td style={{ fontWeight: 'bold' }}>{prod.id}</td>
                     <td>{prod.name}</td>
@@ -353,13 +427,20 @@ export const ProductosAdmin = () => {
                     <td className="price-text">${prod.price.toLocaleString()}</td>
                     <td>{prod.stock} un.</td>
                     <td>
+                      <span className={`status-badge ${prod.status === 'Disponible' ? 'available' : 'out-of-stock'}`}>
+                        {prod.status}
+                      </span>
+                    </td>
+                    <td>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleOpenEditModal(prod)} className="btn-secondary">
                           Editar
                         </button>
-                        <button onClick={() => handleDeleteProduct(prod.id)} className="btn-danger">
-                          Eliminar
-                        </button>
+                        {canDelete && (
+                          <button onClick={() => handleDeleteProduct(prod.id)} className="btn-danger">
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -407,9 +488,11 @@ export const ProductosAdmin = () => {
                         <button onClick={() => handleOpenEditCombo(combo)} className="btn-secondary">
                           Editar
                         </button>
-                        <button onClick={() => handleDeleteCombo(combo.id)} className="btn-danger">
-                          Eliminar
-                        </button>
+                        {canDelete && (
+                          <button onClick={() => handleDeleteCombo(combo.id)} className="btn-danger">
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -422,13 +505,13 @@ export const ProductosAdmin = () => {
 
       {/* Modal de Creación / Edición de Combos (RF-056) */}
       {isComboModalOpen && (
-        <CreateComboModal 
+        <CreateComboModal
           initialCombo={editingCombo || undefined}
-          onSaveCombo={handleSaveCombo} 
+          onSaveCombo={handleSaveCombo}
           onClose={() => {
             setIsComboModalOpen(false);
             setEditingCombo(null);
-          }} 
+          }}
         />
       )}
 
@@ -454,7 +537,13 @@ export const ProductosAdmin = () => {
 
               <div className="form-field">
                 <label>Imagen del Producto</label>
-                <input type="file" accept="image/*" onChange={handleImageChange} className="form-input" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required={!imagePreview}
+                  className="form-input"
+                />
                 {imagePreview && (
                   <div style={{ marginTop: '8px', textAlign: 'center' }}>
                     <img src={imagePreview} alt="Vista previa" className="product-img-preview" />
@@ -469,6 +558,7 @@ export const ProductosAdmin = () => {
                   rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
+                  required
                   className="form-input"
                 />
               </div>
@@ -481,6 +571,7 @@ export const ProductosAdmin = () => {
                     value={formData.category}
                     onChange={handleInputChange}
                     className="form-input"
+                    required
                   >
                     <option value="Cerveza">Cerveza</option>
                     <option value="Whisky">Whisky</option>
@@ -494,7 +585,8 @@ export const ProductosAdmin = () => {
                   <input
                     type="number"
                     name="price"
-                    min="1"
+                    min="0.01"
+                    step="0.01"
                     value={formData.price}
                     onChange={handleInputChange}
                     required
@@ -504,12 +596,25 @@ export const ProductosAdmin = () => {
               </div>
 
               <div className="form-field">
-                <label>Stock</label>
+                <label>Cantidad inicial</label>
                 <input
                   type="number"
                   name="stock"
                   min="1"
+                  step="1"
                   value={formData.stock}
+                  onChange={handleInputChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Advertencia legal</label>
+                <textarea
+                  name="legalWarning"
+                  rows={2}
+                  value={formData.legalWarning}
                   onChange={handleInputChange}
                   required
                   className="form-input"

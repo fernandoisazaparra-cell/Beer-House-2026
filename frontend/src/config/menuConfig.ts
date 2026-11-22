@@ -112,12 +112,13 @@ const adminSection: MenuSection = {
     // --- Proveedores y clientes ---
     { path: "/dashboard/proveedores", icon: FaTruck, label: "Proveedores", rol: [ADMIN], group: MENU_GROUPS.PROVEEDORES },
     { path: "/dashboard/clientes", icon: RiCustomerService2Fill, label: "Clientes", rol: [ADMIN], group: MENU_GROUPS.PROVEEDORES },
+    { path: "/dashboard/usuarios", icon: FaUser, label: "Usuarios", rol: [ADMIN], group: MENU_GROUPS.PROVEEDORES },
     { path: "/dashboard/solicitudes-perfil", icon: FaUser, label: "Solicitudes Perfil", rol: [ADMIN], group: MENU_GROUPS.PROVEEDORES },
 
     // --- Pedidos, compras y ventas ---
     { path: "/dashboard/pedidos", icon: BsBorderStyle, label: "Pedidos", rol: [ADMIN], group: MENU_GROUPS.VENTAS },
     { path: "/dashboard/compras", icon: FaShoppingCart, label: "Compras", rol: [ADMIN], group: MENU_GROUPS.VENTAS },
-    { path: "/dashboard/ventas", icon: FcSalesPerformance, label: "Ventas", rol: [ADMIN], group: MENU_GROUPS.VENTAS },
+    { path: "/dashboard/ventas", icon: FcSalesPerformance, label: "Ventas", rol: [ADMIN, SUPERVISOR], group: MENU_GROUPS.VENTAS },
 
     // --- Marketing ---
     { path: "/dashboard/promociones", icon: FaTag, label: "Promociones", rol: [ADMIN], group: MENU_GROUPS.MARKETING },
@@ -139,6 +140,7 @@ const supervisorSection: MenuSection = {
     { path: "/dashboard/conteos-fisicos", icon: MdOutlineInventory, label: "Conteos Físicos", rol: [SUPERVISOR], group: MENU_GROUPS.INVENTARIO },
     { path: "/dashboard/alertas-inventario", icon: MdOutlineInventory, label: "Alertas de Stock", rol: [SUPERVISOR], group: MENU_GROUPS.INVENTARIO },
     { path: "/dashboard/mermas", icon: FaTrashAlt, label: "Mermas y Pérdidas", rol: [SUPERVISOR], group: MENU_GROUPS.INVENTARIO },
+    { path: "/dashboard/ventas", icon: FcSalesPerformance, label: "Reporte de Ventas", rol: [SUPERVISOR], group: MENU_GROUPS.VENTAS },
 
     { path: "/dashboard/reportes", icon: FcSalesPerformance, label: "Reportes", rol: [SUPERVISOR], group: MENU_GROUPS.REPORTES },
     { path: "/dashboard/compras", icon: FaShoppingCart, label: "Compras", rol: [SUPERVISOR], group: MENU_GROUPS.VENTAS },

@@ -4,6 +4,9 @@
 declare module '@/services/cartService' {
     export interface CartValidationResult {
         success: boolean
+        items?: any[]
+        issues?: Array<{ product_id?: number | null; code?: string; message?: string; available?: number }>
+        total?: number
         updatedCart?: any[]
     }
 

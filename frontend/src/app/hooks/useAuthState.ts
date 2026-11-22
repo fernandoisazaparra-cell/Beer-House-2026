@@ -10,6 +10,8 @@ import {
 } from "@/features/auth/services";
 
 import { type userRol } from "@/config";
+import { API_ROUTES, getApiUrl } from "@/app/api";
+import { authFetch } from "@/shared/lib/authFetch";
 
 export interface user {
   id: number;
@@ -88,7 +90,7 @@ export const useAuthState = () => {
 
         if (cancelled) return;
 
-        const currentUser = ("user" in result ? result.user : result) as user;
+        const currentUser = result.user as user;
 
         if (!currentUser) {
           throw new Error("Usuario no disponible");
@@ -99,7 +101,8 @@ export const useAuthState = () => {
         setToken(storedToken);
         setUser(currentUser);
         setIsAuth(true);
-        setNeedsTermsConfirmation(false);
+        // El backend indica en /auth/me si faltan términos o edad (RN-020).
+        setNeedsTermsConfirmation(Boolean(result.requires_confirmation));
       } catch (error) {
         if (cancelled) return;
 
@@ -130,6 +133,21 @@ export const useAuthState = () => {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Un 401 de authFetch (token vencido o revocado) limpia también el estado React.
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setToken(null);
+      setUser(null);
+      setIsAuth(false);
+      setIsAuthLoading(false);
+      setNeedsTermsConfirmation(false);
+    };
+
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () =>
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
   }, []);
 
   const SetAuth = () => {
@@ -196,8 +214,16 @@ export const useAuthState = () => {
     navigate("/");
   };
 
-  // Cierre de sesión.
-  const logout = () => {
+  // Cierre de sesión: revoca el token en el servidor (RI-008) y limpia el cliente.
+  const logout = async () => {
+    try {
+      await authFetch(getApiUrl(API_ROUTES.Auth.Logout), {
+        method: "POST",
+      });
+    } catch {
+      // Aun si el servidor no responde, la sesión local se cierra.
+    }
+
     localStorage.removeItem(STORAGE_KEY_TOKEN);
     localStorage.removeItem(STORAGE_KEY_USER);
 
@@ -208,6 +234,16 @@ export const useAuthState = () => {
     setNeedsTermsConfirmation(false);
 
     navigate("/");
+  };
+
+  // Mantiene el usuario guardado sincronizado tras un cambio de perfil.
+  const updateCurrentUser = (changes: Partial<user>) => {
+    if (!user) return;
+
+    const updated = { ...user, ...changes };
+
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(updated));
+    setUser(updated);
   };
 
   return {
@@ -222,6 +258,7 @@ export const useAuthState = () => {
     user,
     currentRole,
     setUser,
+    updateCurrentUser,
 
     logout,
     login,

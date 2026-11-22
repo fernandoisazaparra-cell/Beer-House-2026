@@ -13,6 +13,8 @@ import {
 
 import { useGoogleLogin } from "@react-oauth/google";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 export const useRegistreForm = () => {
   const { login, loginWithGoogle } = useAuth();
 
@@ -54,6 +56,54 @@ export const useRegistreForm = () => {
       if (!firstName || !lastName) {
         setErrors({
           general: ["Debes ingresar tu nombre y apellido."],
+        });
+        return;
+      }
+
+      if (!EMAIL_PATTERN.test(data.email)) {
+        setErrors({
+          email: ["Introduce una dirección de correo electrónico válida."],
+        });
+        return;
+      }
+
+      if (data.password.length < 8 || /\s/.test(data.password)) {
+        setErrors({
+          password: [
+            "La contraseña debe tener al menos 8 caracteres y sin espacios.",
+          ],
+        });
+        return;
+      }
+
+      if (!data.birth_date) {
+        setErrors({
+          birth_date: ["La fecha de nacimiento es obligatoria."],
+        });
+        return;
+      }
+
+      const birthDate = new Date(`${data.birth_date}T00:00:00`);
+      const today = new Date();
+
+      if (Number.isNaN(birthDate.getTime()) || birthDate > today) {
+        setErrors({
+          birth_date: ["Introduce una fecha de nacimiento válida."],
+        });
+        return;
+      }
+
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const beforeBirthday =
+        today.getMonth() < birthDate.getMonth() ||
+        (today.getMonth() === birthDate.getMonth() &&
+          today.getDate() < birthDate.getDate());
+
+      if (beforeBirthday) age -= 1;
+
+      if (age < 18) {
+        setErrors({
+          birth_date: ["Debes ser mayor de 18 años."],
         });
         return;
       }
@@ -106,7 +156,21 @@ export const useRegistreForm = () => {
     try {
       setIsLoading(true);
       setVerifyLogin({});
-      await login(data.email, data.password);
+      setErrors({});
+
+      if (!EMAIL_PATTERN.test((data.email ?? "").trim())) {
+        setErrors({
+          email: ["Introduce una dirección de correo electrónico válida."],
+        });
+        return;
+      }
+
+      if (!data.password) {
+        setErrors({ password: ["La contraseña es obligatoria."] });
+        return;
+      }
+
+      await login(data.email.trim(), data.password);
     } catch (err) {
       const result = err as ApiErrorResponse;
       if ("errors" in result) {

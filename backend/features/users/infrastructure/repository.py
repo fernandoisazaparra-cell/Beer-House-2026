@@ -12,10 +12,17 @@ from datetime import UTC, datetime, timedelta
 from werkzeug.security import generate_password_hash
 
 from app.extensions import db
+from shared.security.password import hash_password
+
 from .models import PendingRegistration, ProfileUpdateRequest, UserModel
 
 
 User = UserModel
+
+
+class UserHasTransactions(ValueError):
+    """El usuario tiene transacciones y no puede eliminarse (RN-004)."""
+
 
 CARACTERES_CODIGO = (
     "ABCDEFGHJKLMNPQRSTUVWXYZ"
@@ -71,7 +78,9 @@ class SQLAlchemyUserRepository:
     # USUARIOS DEFINITIVOS
     # ---------------------------------------------------------
 
-    def create_user(self, first_name, last_name, email, password):
+    def create_user(
+        self, first_name, last_name, email, password, rol="user"
+    ):
         now = ahora_utc()
 
         try:
@@ -80,9 +89,11 @@ class SQLAlchemyUserRepository:
                 last_name=last_name,
                 email=email.strip().lower(),
                 password=password,
+                rol=rol,
                 terms_accepted_at=now,
                 age_confirmed_at=now,
                 terms_version="v1.0",
+                created_at=now,
             )
 
             db.session.add(model)
@@ -93,6 +104,18 @@ class SQLAlchemyUserRepository:
         except Exception:
             db.session.rollback()
             raise
+
+    def rehash_password(self, user, plain_password):
+        """Actualiza un hash legacy a bcrypt tras un login correcto (RNF-010)."""
+        user.password = hash_password(plain_password)
+        db.session.commit()
+        return user
+
+    def revoke_tokens(self, user):
+        """Invalida todos los tokens emitidos para este usuario (RI-008)."""
+        user.token_version = (user.token_version or 0) + 1
+        db.session.commit()
+        return user
 
     # ---------------------------------------------------------
     # REGISTROS PENDIENTES
@@ -377,11 +400,14 @@ class SQLAlchemyUserRepository:
 
                 user.email = email
 
+            if "rol" in data:
+                rol = data["rol"]
+                if rol not in ("admin", "supervisor", "user"):
+                    raise ValueError("Rol inválido.")
+                user.rol = rol
+
             if "password" in data and data["password"]:
-                user.password = generate_password_hash(
-                    data["password"],
-                    method="pbkdf2:sha256"
-                )
+                user.password = hash_password(data["password"])
 
             db.session.commit()
 
@@ -392,10 +418,41 @@ class SQLAlchemyUserRepository:
             raise
 
     def delete_user_admin(self, user_id):
+        from features.customers.infrastructure.models import (
+            CustomerInteractionModel,
+        )
+        from features.purchases.infrastructure.models import (
+            CustomerOrderModel,
+            PaymentTransactionModel,
+            PurchaseOrderModel,
+        )
+        from features.sales.infrastructure.models import SaleModel
+
         user = db.session.get(UserModel, user_id)
 
         if not user:
             raise ValueError("Usuario no encontrado.")
+
+        # RN-004: un usuario con movimientos no puede borrarse (CP-029).
+        relacionados = (
+            ("ventas", SaleModel),
+            ("pedidos", CustomerOrderModel),
+            ("compras", PurchaseOrderModel),
+            ("pagos", PaymentTransactionModel),
+            ("interacciones", CustomerInteractionModel),
+            ("solicitudes de perfil", ProfileUpdateRequest),
+        )
+        for nombre, modelo in relacionados:
+            columna = getattr(modelo, "user_id", None)
+            if columna is None:
+                continue
+
+            if db.session.query(modelo).filter(columna == user.id).first():
+                raise UserHasTransactions(
+                    "No se puede eliminar el usuario porque tiene "
+                    f"{nombre} asociadas. Cancela esas transacciones o "
+                    "desactiva la cuenta antes de eliminarla."
+                )
 
         try:
             db.session.delete(user)

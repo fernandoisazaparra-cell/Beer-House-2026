@@ -25,6 +25,7 @@ export const ProductCard = ({ producto }: { producto: CatalogProduct }) => {
       name: producto.name,
       price: producto.price,
       imageUrl: image,
+      stock: producto.stock,
     });
   };
 
@@ -45,6 +46,11 @@ export const ProductCard = ({ producto }: { producto: CatalogProduct }) => {
           <Link to={detailPath} className={styles.cardLink}>{producto.name}</Link>
         </h2>
         <p className={styles.details}>{producto.liquor_type}</p>
+
+        {/* RF-016: la descripción viaja en el DTO y se muestra en la tarjeta. */}
+        {producto.description && (
+          <p className={styles.description}>{producto.description}</p>
+        )}
 
         <div className={styles.rating}>
           <span>★★★★★</span>

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { updateProfile } from "@/features/auth/services";
 import styles from "./profilePage.module.css";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 interface UserProfileProps {
   currentUser?: {
     id?: number;
@@ -9,12 +11,16 @@ interface UserProfileProps {
     last_name?: string;
     email?: string;
   };
+  onUserChange?: (changes: { email?: string; name?: string }) => void;
 }
 
-export const ProfilePage: React.FC<UserProfileProps> = ({ currentUser }) => {
+export const ProfilePage: React.FC<UserProfileProps> = ({
+  currentUser,
+  onUserChange,
+}) => {
   const [firstName, setFirstName] = useState(currentUser?.first_name || "Juan");
   const [lastName, setLastName] = useState(currentUser?.last_name || "Pérez");
-  const email = currentUser?.email || "juan.perez@example.com";
+  const [email, setEmail] = useState(currentUser?.email || "");
   const [birthDate, setBirthDate] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -28,23 +34,57 @@ export const ProfilePage: React.FC<UserProfileProps> = ({ currentUser }) => {
     setLoading(true);
     setFeedbackMessage(null);
 
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      setFeedbackMessage({
+        type: "error",
+        text: "Introduce una dirección de correo electrónico válida.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (!birthDate) {
+      setFeedbackMessage({
+        type: "error",
+        text: "La fecha de nacimiento es obligatoria.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (new Date(`${birthDate}T00:00:00`) > new Date()) {
+      setFeedbackMessage({
+        type: "error",
+        text: "La fecha de nacimiento no puede ser futura.",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await updateProfile({
-        first_name: firstName,
-        last_name: lastName,
-        birth_date: birthDate || undefined,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        birth_date: birthDate,
       });
 
-      if (res.status === 202) {
-        setFeedbackMessage({
-          type: "warning",
-          text: res.data.message,
-        });
-      } else {
-        setFeedbackMessage({
-          type: "success",
-          text: res.data.message || "Perfil actualizado correctamente.",
-        });
+      setFeedbackMessage({
+        type: res.status === 202 ? "warning" : "success",
+        text: res.data.message || "Perfil actualizado correctamente.",
+      });
+
+      if (res.status === 200 && res.data.user) {
+        const updatedEmail = res.data.user.email;
+        const updatedName = [
+          res.data.user.first_name,
+          res.data.user.last_name,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        setEmail(updatedEmail);
+        onUserChange?.({ email: updatedEmail, name: updatedName });
       }
     } catch (err: any) {
       setFeedbackMessage({
@@ -67,7 +107,9 @@ export const ProfilePage: React.FC<UserProfileProps> = ({ currentUser }) => {
         </div>
 
         {feedbackMessage && (
-          <div className={`${styles["feedback-alert"]} ${styles[feedbackMessage.type]}`}>
+          <div
+            className={`${styles["feedback-alert"]} ${styles[feedbackMessage.type]}`}
+          >
             <span className={styles["alert-icon"]}>
               {feedbackMessage.type === "warning"
                 ? "⚠️"
@@ -75,24 +117,21 @@ export const ProfilePage: React.FC<UserProfileProps> = ({ currentUser }) => {
                 ? "✓"
                 : "✕"}
             </span>
-            <div className={styles["alert-text"]}>
-              {feedbackMessage.text}
-            </div>
+            <div className={styles["alert-text"]}>{feedbackMessage.text}</div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className={styles["profile-form"]}>
           <div className={styles["form-group"]}>
-            <label className={styles["form-label"]}>
-              Correo Electrónico{" "}
-              <span className={styles["optional"]}>(No editable)</span>
-            </label>
+            <label className={styles["form-label"]}>Correo Electrónico</label>
             <input
               type="email"
               value={email}
-              disabled
-              className={`${styles["form-input"]} ${styles["disabled"]}`}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className={styles["form-input"]}
             />
+            <small>Los cambios de correo requieren 30 días de antigüedad.</small>
           </div>
 
           <div className={styles["form-grid"]}>
@@ -122,13 +161,13 @@ export const ProfilePage: React.FC<UserProfileProps> = ({ currentUser }) => {
           </div>
 
           <div className={styles["form-group"]}>
-            <label className={styles["form-label"]}>
-              Fecha de Nacimiento
-            </label>
+            <label className={styles["form-label"]}>Fecha de Nacimiento</label>
             <input
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              required
               className={styles["form-input"]}
             />
           </div>

@@ -5,8 +5,10 @@ from features.products.infrastructure.repository import (
     SQLAlchemyComboRepository,
 )
 from features.products.application.services import (
-    ProductService,
     ComboService,
+    ProductNotFoundError,
+    ProductService,
+    ProductValidationError,
 )
 from shared.security.decorators import role_required
 from shared.security.roles import ADMIN, STAFF_ROLES
@@ -64,7 +66,7 @@ def create_product():
         new_product = product_service.create_product(data)
         return jsonify(new_product), 201
 
-    except ValueError as e:
+    except ProductValidationError as e:
         return jsonify({"error": str(e)}), 400
 
     except Exception as e:
@@ -91,7 +93,10 @@ def update_product(product_id):
         )
         return jsonify(updated_product), 200
 
-    except ValueError as e:
+    except ProductValidationError as e:
+        return jsonify({"error": str(e)}), 400
+
+    except ProductNotFoundError as e:
         return jsonify({"error": str(e)}), 404
 
     except Exception as e:
@@ -108,7 +113,7 @@ def delete_product(product_id):
         response = product_service.delete_product(product_id)
         return jsonify(response), 200
 
-    except ValueError as e:
+    except ProductNotFoundError as e:
         return jsonify({"error": str(e)}), 404
 
     except Exception as e:
